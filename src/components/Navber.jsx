@@ -134,7 +134,7 @@ const Navbar = () => {
                 {/* Menu Links */}
                 <li>
                   <Link
-                    href="/CreateEnevt"
+                    href="/create-event"
                     className="py-2.5 px-3 font-medium text-gray-700 hover:text-green-700 hover:bg-green-50 rounded-xl transition flex items-center gap-2"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-green-600">
