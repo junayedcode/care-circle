@@ -6,11 +6,11 @@ import Image from "next/image";
 
 const AllEvents = () => {
   const [events, setEvents] = useState([]);
-  const [filteredEvents, setFilteredEvents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
 
+  // ১. ব্যাকএন্ড থেকে ইভেন্ট ফেচ করা এবং পাস্ট ডেট বাদ দেওয়া
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -18,11 +18,10 @@ const AllEvents = () => {
         if (res.ok) {
           const data = await res.json();
           
-         
           const today = new Date();
           today.setHours(0, 0, 0, 0);
 
-   
+          // শুধু ফিউচার বা আজকের ডেটের ইভেন্টগুলো সেভ করা
           const upcomingEvents = data.filter((event) => {
             if (!event.date) return false;
             const eventDate = new Date(event.date);
@@ -30,7 +29,6 @@ const AllEvents = () => {
           });
 
           setEvents(upcomingEvents);
-          setFilteredEvents(upcomingEvents);
         }
       } catch (error) {
         console.error("Failed to fetch events from backend:", error);
@@ -42,29 +40,23 @@ const AllEvents = () => {
     fetchEvents();
   }, []);
 
-  useEffect(() => {
-    let result = events;
+  // ২. ক্যাটাগরি এবং সার্চ টার্ম অনুযায়ী একসাথে ফিল্টারিং লজিক
+  const filteredEvents = events.filter((event) => {
+    // ক্যাটাগরি চেক
+    const matchesCategory =
+      selectedCategory === "All" ||
+      event.type?.toLowerCase() === selectedCategory.toLowerCase();
 
-   
-    if (selectedCategory !== "All") {
-      result = result.filter(
-        (event) => event.type?.toLowerCase() === selectedCategory.toLowerCase()
-      );
-    }
+    // সার্চ টার্ম চেক (টাইটেল, লোকেশন বা ডেসক্রিপশনের যেকোনো একটি মিলে গেলে হবে)
+    const term = searchTerm.toLowerCase().trim();
+    const matchesSearch =
+      term === "" ||
+      event.title?.toLowerCase().includes(term) ||
+      event.location?.toLowerCase().includes(term) ||
+      event.description?.toLowerCase().includes(term);
 
-    
-    if (searchTerm.trim() !== "") {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(
-        (event) =>
-          event.title?.toLowerCase().includes(term) ||
-          event.location?.toLowerCase().includes(term) ||
-          event.description?.toLowerCase().includes(term)
-      );
-    }
-
-    setFilteredEvents(result);
-  }, [searchTerm, selectedCategory, events]);
+    return matchesCategory && matchesSearch;
+  });
 
   const categories = ["All", "Donation", "Cleanup", "Plantation", "Winter Relief", "FoodDistribution", "Health Camp"];
 

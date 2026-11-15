@@ -75,7 +75,7 @@ const Navbar = () => {
             <div className="w-16 h-8 bg-gray-200 animate-pulse rounded-full"></div>
           </div>
         ) : session ? (
-          /* Profile Dropdown & Logout Button (Exactly like screenshot) */
+          /* Profile Dropdown & Logout Button */
           <div className="flex items-center gap-3">
             {/* Profile Dropdown */}
             <div className="dropdown dropdown-end">
@@ -84,14 +84,14 @@ const Navbar = () => {
                 role="button"
                 className="flex items-center gap-1.5 cursor-pointer p-1 rounded-full hover:bg-gray-100 transition"
               >
-                <div className="w-9 h-9 rounded-full overflow-hidden border border-green-700">
+                <div className="w-9 h-9 rounded-full overflow-hidden border border-green-700 relative">
                   {session.user?.image ? (
                     <Image
                       src={session.user.image}
                       alt="Profile"
-                      width={36}
-                      height={36}
-                      className="object-cover w-full h-full"
+                      fill
+                      unoptimized 
+                      className="object-cover"
                     />
                   ) : (
                     <div className="w-full h-full bg-green-800 text-white flex items-center justify-center font-bold text-sm">
@@ -99,7 +99,7 @@ const Navbar = () => {
                     </div>
                   )}
                 </div>
-                {/* ছোট ডাউন অ্যারো আইকন */}
+                
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -132,6 +132,17 @@ const Navbar = () => {
                 </li>
 
                 {/* Menu Links */}
+                <li>
+                  <Link
+                    href="/profile"
+                    className="py-2.5 px-3 font-medium text-gray-700 hover:text-green-700 hover:bg-green-50 rounded-xl transition flex items-center gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-green-600">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                    My Profile
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/create-event"
@@ -168,7 +179,7 @@ const Navbar = () => {
               </ul>
             </div>
 
-            {/* Logout Button (Directly on Navbar next to profile) */}
+            {/* Logout Button */}
             <button
               onClick={handleLogout}
               className="flex items-center gap-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 px-3.5 py-1.5 rounded-full font-semibold text-xs transition duration-300 cursor-pointer shadow-sm"
