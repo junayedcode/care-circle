@@ -1,24 +1,72 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { connection } from "next/server"; 
 import Image from "next/image";
 
-const AllEvents = async () => {
-  await connection();
+const AllEvents = () => {
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [loading, setLoading] = useState(true);
 
-  let events = [];
-  
-  try {
-    const res = await fetch("http://localhost:8000/events", {
-      cache: "no-store",
-    });
-    
-    if (res.ok) {
-      events = await res.json();
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/events");
+        if (res.ok) {
+          const data = await res.json();
+          
+         
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+   
+          const upcomingEvents = data.filter((event) => {
+            if (!event.date) return false;
+            const eventDate = new Date(event.date);
+            return eventDate >= today;
+          });
+
+          setEvents(upcomingEvents);
+          setFilteredEvents(upcomingEvents);
+        }
+      } catch (error) {
+        console.error("Failed to fetch events from backend:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  useEffect(() => {
+    let result = events;
+
+   
+    if (selectedCategory !== "All") {
+      result = result.filter(
+        (event) => event.type?.toLowerCase() === selectedCategory.toLowerCase()
+      );
     }
-  } catch (error) {
-    console.error("Failed to fetch events from backend:", error);
-  }
+
+    
+    if (searchTerm.trim() !== "") {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(
+        (event) =>
+          event.title?.toLowerCase().includes(term) ||
+          event.location?.toLowerCase().includes(term) ||
+          event.description?.toLowerCase().includes(term)
+      );
+    }
+
+    setFilteredEvents(result);
+  }, [searchTerm, selectedCategory, events]);
+
+  const categories = ["All", "Donation", "Cleanup", "Plantation", "Winter Relief", "FoodDistribution", "Health Camp"];
 
   return (
     <main className="min-h-screen bg-[#f7faf7] py-10 px-4 md:px-8 lg:px-12">
@@ -48,42 +96,50 @@ const AllEvents = async () => {
 
         {/* Filter Categories & Search Bar */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            <button className="bg-green-800 text-white px-4 py-2 rounded-full text-xs font-semibold shadow-sm">
-              All
-            </button>
-            <button className="bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 px-4 py-2 rounded-full text-xs font-semibold transition">
-              Donation
-            </button>
-            <button className="bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 px-4 py-2 rounded-full text-xs font-semibold transition">
-              Cleanup
-            </button>
-            <button className="bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 px-4 py-2 rounded-full text-xs font-semibold transition">
-              Plantation
-            </button>
-            <button className="bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 px-4 py-2 rounded-full text-xs font-semibold transition">
-              Winter Relief
-            </button>
+          {/* Dynamic Categories */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none ">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition cursor-pointer shadow-sm ${
+                  selectedCategory === cat
+                    ? "bg-green-800 text-white"
+                    : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
 
+          {/* Search Bar */}
           <div className="w-full lg:w-72">
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search events or venue..."
               className="w-full px-4 py-2.5 rounded-full border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800"
             />
           </div>
         </div>
 
-        {/* Events Grid */}
-        {events.length === 0 ? (
+        {/* Loading State */}
+        {loading ? (
           <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
-            <p className="text-gray-500 text-lg font-medium">No upcoming events found.</p>
-            <p className="text-gray-400 text-sm mt-1">Make sure your backend server is running and database has events!</p>
+            <p className="text-green-700 font-semibold text-lg animate-pulse">Loading upcoming events...</p>
+          </div>
+        ) : filteredEvents.length === 0 ? (
+          /* Empty State */
+          <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
+            <p className="text-gray-500 text-lg font-medium">No matching upcoming events found.</p>
+            <p className="text-gray-400 text-sm mt-1">Try searching with a different keyword or category.</p>
           </div>
         ) : (
+          /* Events Grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
+            {filteredEvents.map((event) => (
               <div
                 key={event._id}
                 className="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100 flex flex-col justify-between hover:shadow-xl transition duration-300"
@@ -95,6 +151,7 @@ const AllEvents = async () => {
                       src={event.thumbnail || "https://images.unsplash.com/photo-1532629345422-7515f3d16bb9"}
                       alt={event.title || "Event Thumbnail"}
                       fill
+                      unoptimized
                       className="object-cover"
                     />
                     <span className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-md text-green-800 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
@@ -130,7 +187,7 @@ const AllEvents = async () => {
                 <div className="p-6 pt-0">
                   <Link
                     href={`/events/${event._id}`}
-                    className="block w-full text-center bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3 rounded-2xl transition duration-300 shadow-sm text-sm"
+                    className="block w-full text-center bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded-2xl transition duration-300 shadow-sm text-sm"
                   >
                     View Event →
                   </Link>
