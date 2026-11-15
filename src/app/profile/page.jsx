@@ -1,13 +1,14 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { authClient } from "../../lib/auth-client";
+import { toast } from "react-toastify";
 
 const ProfilePage = () => {
-  const { data: session, isPending } = authClient.useSession();
-
+  const router = useRouter();
+  const { data: session, isPending, refetch } = authClient.useSession();
   const user = session?.user;
 
   const [fullName, setFullName] = useState("");
@@ -24,44 +25,70 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  // Handle profile image selection
+  // Handle profile image selection with maximum quality
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
-
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file.");
+      toast.error("Please select a valid image file.");
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Image size must be less than 2 MB.");
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5 MB.");
       e.target.value = "";
       return;
     }
 
     const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = document.createElement("img");
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
 
-    reader.onloadend = () => {
-      if (typeof reader.result === "string") {
-        setPreview(reader.result);
-        setImageData(reader.result);
-      }
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.98);
+        setPreview(dataUrl);
+        setImageData(dataUrl);
+      };
+      img.src = event.target.result;
     };
-
     reader.readAsDataURL(file);
   };
 
-  // Update profile
+  // Update profile (Name, Email & Image)
   const handleUpdate = async (e) => {
     e.preventDefault();
-
     setLoading(true);
 
     try {
       const updateData = {
         name: fullName.trim(),
+        email: email.trim(),
       };
 
       if (imageData) {
@@ -71,18 +98,21 @@ const ProfilePage = () => {
       const { error } = await authClient.updateUser(updateData);
 
       if (error) {
-        alert(error.message || "Failed to update profile.");
+        toast.error(error.message || "Failed to update profile.");
         return;
       }
 
-      alert("Profile updated successfully!");
+      // সেশন এবং রাউটার রিফ্রেশ করা যাতে নতুন ডাটা পার্মানেন্টলি সেভ হয়ে থাকে
+      if (refetch) {
+        await refetch();
+      }
+      router.refresh();
 
+      toast.success("Profile updated successfully!");
       setImageData("");
-
     } catch (error) {
       console.error("Profile update error:", error);
-      alert("Something went wrong. Please try again.");
-
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -90,25 +120,25 @@ const ProfilePage = () => {
 
   if (isPending) {
     return (
-      <p className="p-5 text-center text-gray-500">
-        Loading profile...
-      </p>
+      <div className="min-h-[70vh] flex items-center justify-center bg-[#f7faf7]">
+        <p className="text-green-700 font-semibold animate-pulse text-lg">Loading profile...</p>
+      </div>
     );
   }
 
   if (!user) {
     return (
-      <p className="p-5 text-center text-gray-500">
-        Please log in to view your profile.
-      </p>
+      <div className="min-h-[70vh] flex items-center justify-center bg-[#f7faf7]">
+        <p className="text-gray-500 font-medium text-lg">Please log in to view your profile.</p>
+      </div>
     );
   }
 
   const profileImage = preview || user.image;
 
   return (
-    <section className="px-4 md:px-10 pt-5 pb-10">
-      <div className="relative max-w-4xl mx-auto bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden p-8 md:p-10">
+    <section className="px-4 md:px-10 py-10 bg-[#f7faf7] min-h-screen flex items-center justify-center">
+      <div className="relative max-w-4xl w-full mx-auto bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden p-8 md:p-12">
 
         {/* Decorative Leaves */}
         <div className="pointer-events-none absolute top-0 right-0">
@@ -135,42 +165,42 @@ const ProfilePage = () => {
         </div>
 
         {/* Heading */}
-        <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900">
-          My Profile
-        </h1>
+        <div className="mb-8">
+          <div className="inline-block bg-green-50 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase tracking-wider">
+            🛡️ Account Settings
+          </div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#123c2c]">
+            My Profile
+          </h1>
+          <p className="text-gray-500 text-sm md:text-base mt-1">
+            Manage your personal credentials and profile appearance seamlessly.
+          </p>
+        </div>
 
-        <p className="text-gray-500 text-sm md:text-base mt-1">
-          Manage your profile information
-        </p>
-
-        {/* Content */}
-        <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-8 items-start mt-8">
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-10 items-center">
 
           {/* Left: Avatar + Change Photo */}
           <div className="flex flex-col items-center">
-
-            <div className="w-40 h-40 rounded-full overflow-hidden ring-4 ring-[#edf5e7] flex items-center justify-center bg-gray-200">
-
+            <div className="relative w-40 h-40 rounded-full overflow-hidden shadow-md ring-4 ring-green-50 bg-gray-100 flex items-center justify-center">
               {profileImage ? (
                 <Image
                   src={profileImage}
                   alt="Profile photo"
-                  width={320}
-                  height={320}
+                  fill
                   unoptimized
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center"
                 />
               ) : (
-                <span className="text-5xl font-bold text-gray-500">
+                <span className="text-5xl font-bold text-green-800">
                   {user.name?.charAt(0)?.toUpperCase() || "U"}
                 </span>
               )}
-
             </div>
 
             <label
               htmlFor="profileImage"
-              className="btn bg-green-800 hover:bg-green-900 text-white border-none rounded-full px-6 h-11 min-h-11 mt-5 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
+              className="mt-6 bg-green-700 hover:bg-green-800 text-white text-xs font-semibold px-6 py-3 rounded-xl shadow-sm transition duration-300 cursor-pointer text-center"
             >
               Change Photo
             </label>
@@ -182,21 +212,18 @@ const ProfilePage = () => {
               className="hidden"
               onChange={handleImageChange}
             />
-
           </div>
 
           {/* Right: Form */}
           <form onSubmit={handleUpdate} className="space-y-5">
-
             {/* Full Name */}
             <div>
               <label
                 htmlFor="fullName"
-                className="block text-sm font-bold text-gray-800 mb-2"
+                className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"
               >
                 Full Name
               </label>
-
               <input
                 id="fullName"
                 type="text"
@@ -204,7 +231,7 @@ const ProfilePage = () => {
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Enter your full name"
                 required
-                className="w-full input input-bordered border-gray-200 rounded-lg focus:border-green-700 focus:outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium"
               />
             </div>
 
@@ -212,11 +239,10 @@ const ProfilePage = () => {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-bold text-gray-800 mb-2"
+                className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"
               >
                 Email Address
               </label>
-
               <input
                 id="email"
                 type="email"
@@ -224,19 +250,20 @@ const ProfilePage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email address"
                 required
-                className="w-full input input-bordered border-gray-200 rounded-lg focus:border-green-700 focus:outline-none"
-                />
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium"
+              />
             </div>
 
             {/* Update Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn w-full bg-green-800 hover:bg-green-900 text-white border-none rounded-lg h-12 min-h-12 shadow-md hover:shadow-lg transition-all duration-300 disabled:bg-gray-400"
-            >
-              {loading ? "Updating..." : "Update Profile"}
-            </button>
-
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3.5 rounded-xl shadow-md transition duration-300 text-sm disabled:bg-gray-400 cursor-pointer"
+              >
+                {loading ? "Saving Changes..." : "Save Changes"}
+              </button>
+            </div>
           </form>
 
         </div>
