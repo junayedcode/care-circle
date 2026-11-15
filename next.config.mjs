@@ -1,24 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
-  
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**", 
-      },
-      {
-        protocol: "http",
-        hostname: "**", 
-      },
+      { protocol: "https", hostname: "**" },
+      { protocol: "http", hostname: "**" },
     ],
   },
-  
-  experimental: {
-    agentFeedback: true,
-  },
-  
+  experimental: { agentFeedback: true },
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,

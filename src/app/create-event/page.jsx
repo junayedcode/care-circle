@@ -1,225 +1,230 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "react-toastify";
 
-const CreateEvent = () => {
+const CreateEventContent = () => {
   const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+
+  const [minDate, setMinDate] = useState("");
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    category: "Donation",
+    date: "",
+    location: "",
+    thumbnail: "",
+  });
+
   const [loading, setLoading] = useState(false);
 
+  // ব্রাউজারে লোড হওয়ার পর সেফলি ডেট সেট করার জন্য useEffect ব্যবহার করা হয়েছে
+  useEffect(() => {
+    const today = new Date().toLocaleDateString("en-CA");
+    setMinDate(today);
+    setFormData((prev) => ({ ...prev, date: today }));
+  }, []);
 
-  const today = new Date().toLocaleDateString("en-CA");
+  if (isPending) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <p className="text-green-700 font-semibold animate-pulse">Checking authentication...</p>
+      </div>
+    );
+  }
 
-  const { data: session } = authClient.useSession();
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
- 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const formData = new FormData(e.currentTarget);
-    const selectedDate = formData.get("date");
-
-   
-    if (selectedDate < today) {
-      toast.error("Please select today or a future date!");
-      return;
-    }
-
     setLoading(true);
 
-    const eventData = {
-      title: formData.get("title"),
-      type: formData.get("type"),
-      date: selectedDate,
-      location: formData.get("location"),
-      thumbnail: formData.get("thumbnail"),
-      description: formData.get("description"),
-      organizerEmail: session?.user?.email || "",
-    };
-
     try {
-      const res = await fetch('http://localhost:8000/create-event',{
-      method:"POST",
-      headers:{
-            "Content-Type":"application/json",
-      },
-      body:JSON.stringify(eventData)
-    })
-    const data = await res.json()
-    console.log(data);
-      console.log("Event Data:", eventData);
+      const eventPayload = {
+        ...formData,
+        organizerEmail: session?.user?.email || "anonymous@gmail.com",
+        organizerName: session?.user?.name || "Anonymous",
+        organizerImage: session?.user?.image || "",
+      };
 
-     
-      toast.success("Community Event created successfully!");
-      router.push("/events");
+      const res = await fetch("http://localhost:8000/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(eventPayload),
+      });
+
+      if (res.ok) {
+        toast.success("Event created successfully!");
+        router.push("/events");
+        router.refresh();
+      } else {
+        toast.error("Failed to create event. Please try again.");
+      }
     } catch (error) {
-      toast.error("Failed to create event. Please try again.");
-      console.error(error);
+      console.error("Error creating event:", error);
+      toast.error("Something went wrong!");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <main className="min-h-screen bg-[#f7faf7] py-10 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-      <div className="w-full max-w-3xl">
-        {/* Back Link */}
-        <Link
-          href="/events"
-          className="text-sm font-semibold text-gray-500 hover:text-green-700 flex items-center gap-1 mb-6 transition"
-        >
-          ← Back to Upcoming Events
-        </Link>
+  const categories = [
+    "Donation",
+    "Cleanup",
+    "Plantation",
+    "Winter Relief",
+    "FoodDistribution",
+    "Health Camp",
+  ];
 
-        {/* Main Card */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-gray-100">
-          {/* Header Tag */}
-          <div className="inline-block bg-green-50 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
-            🌱 Social Service Drive
+  return (
+    <section className="px-4 md:px-10 py-10 bg-[#f7faf7] min-h-screen">
+      <div className="max-w-3xl mx-auto bg-white rounded-[32px] shadow-sm border border-gray-100 p-8 md:p-12">
+        
+        {/* Header */}
+        <div className="mb-8">
+          <div className="inline-block bg-green-50 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase tracking-wider">
+            🌱 Community Initiative
+          </div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#123c2c]">
+            Create Volunteer Event
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Fill in the details below to launch a new community drive and invite volunteers.
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {/* Title */}
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              Event Title
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="e.g. Winter Clothing Distribution Drive"
+              required
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium"
+            />
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-extrabold text-[#123c2c]">
-            Create a Community Event
-          </h1>
-          <p className="text-gray-500 mt-1 mb-8 text-sm md:text-base">
-            Organize a local relief effort, environment cleanup, or community support drive.
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Event Title */}
+          {/* Category & Date Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Event Title *
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                Category / Type
+              </label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                Event Date
               </label>
               <input
-                type="text"
-                name="title"
-                placeholder="e.g. Winter Clothes Distribution – Mirpur-10, Dhaka"
+                type="date"
+                name="date"
+                min={minDate}
+                value={formData.date}
+                onChange={handleChange}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-gray-800 text-sm"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium"
               />
             </div>
+          </div>
 
-            {/* Event Type & Event Date (Grid) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Event Type */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Event Type *
-                </label>
-                <select
-                  name="type"
-                  required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-gray-800 text-sm bg-white cursor-pointer"
-                >
-                  <option value="Donation">Donation</option>
-                  <option value="Cleanup">Cleanup Drive</option>
-                  <option value="MedicalCamp">Medical Camp</option>
-                  <option value="FoodDistribution">Food Distribution</option>
-                  <option value="TreePlantation">Tree Plantation</option>
-                </select>
-              </div>
+          {/* Location */}
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              Location / Venue
+            </label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="e.g. Central Park, Dhaka"
+              required
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium"
+            />
+          </div>
 
-              {/* Event Date */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Event Date *
-                </label>
-                <input
-                  type="date"
-                  name="date"
-                  min={today}
-                  required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-gray-800 text-sm"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Dates must be in the future (today or later).
-                </p>
-              </div>
-            </div>
+          {/* Thumbnail Image URL */}
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              Thumbnail Image URL
+            </label>
+            <input
+              type="url"
+              name="thumbnail"
+              value={formData.thumbnail}
+              onChange={handleChange}
+              placeholder="https://images.unsplash.com/..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium"
+            />
+            <p className="text-[11px] text-gray-400 mt-1">Leave empty to use a default community photo.</p>
+          </div>
 
-            {/* Location / Venue */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Location / Venue *
-              </label>
-              <input
-                type="text"
-                name="location"
-                placeholder="e.g. Mohammadpur Town Hall, Dhaka"
-                required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-gray-800 text-sm"
-              />
-            </div>
+          {/* Description */}
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              Description
+            </label>
+            <textarea
+              name="description"
+              rows="4"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Provide details about the initiative, schedule, and what volunteers should bring..."
+              required
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium resize-none"
+            ></textarea>
+          </div>
 
-            {/* Thumbnail Image URL */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Thumbnail Image URL *
-              </label>
-              <input
-                type="url"
-                name="thumbnail"
-                placeholder="https://images.unsplash.com/photo-..."
-                required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-gray-800 text-sm"
-              />
-              {/* Quick presets helper */}
-              <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 flex-wrap">
-                <span className="font-medium">Quick photo presets:</span>
-                <span className="text-green-700 hover:underline cursor-pointer">Winter Clothes</span>
-                <span>•</span>
-                <span className="text-green-700 hover:underline cursor-pointer">Blanket Relief</span>
-                <span>•</span>
-                <span className="text-green-700 hover:underline cursor-pointer">Cleanup</span>
-                <span>•</span>
-                <span className="text-green-700 hover:underline cursor-pointer">Tree Plantation</span>
-              </div>
-            </div>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3.5 rounded-xl shadow-md transition duration-300 text-sm disabled:bg-gray-400 cursor-pointer"
+          >
+            {loading ? "Creating Event..." : "Publish Event"}
+          </button>
 
-            {/* Event Description */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Event Description *
-              </label>
-              <textarea
-                name="description"
-                rows={4}
-                placeholder="Explain the purpose of the drive, volunteers required, items being distributed or tasks to complete..."
-                required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-gray-800 text-sm resize-none"
-              ></textarea>
-            </div>
-
-            {/* Organizer Email (Read-only from session) */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Organizer Email attached:
-              </label>
-              <input
-                type="email"
-                value={session?.user?.email || "loading..."}
-                disabled
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 text-sm select-none cursor-not-allowed"
-              />
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              
-              className="w-full bg-green-700 hover:bg-green-800 disabled:bg-green-500 text-white font-bold py-3.5 rounded-xl transition duration-300 shadow-lg shadow-green-700/20 cursor-pointer text-base mt-4"
-            >
-              Create Event
-            </button>
-          </form>
-        </div>
+        </form>
       </div>
-    </main>
+    </section>
   );
 };
 
-export default CreateEvent;
+
+export default function CreateEventPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-20 text-green-700 font-semibold">Loading...</div>}>
+      <CreateEventContent />
+    </Suspense>
+  );
+}

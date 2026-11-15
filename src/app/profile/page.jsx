@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { authClient } from "../../lib/auth-client";
 import { toast } from "react-toastify";
@@ -16,16 +15,21 @@ const ProfilePage = () => {
   const [preview, setPreview] = useState(null);
   const [imageData, setImageData] = useState("");
   const [loading, setLoading] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
-  // Load logged-in user information
+  // Session বদলালেই state sync
   useEffect(() => {
     if (user) {
+      console.log("=== USER ===", user);
+      console.log("image:", user.image);
       setFullName(user.name || "");
       setEmail(user.email || "");
+      setPreview(user.image || null);
+      setImgError(false);
     }
   }, [user]);
 
-  // Handle profile image selection with maximum quality
+  // Image select + compress
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -34,7 +38,6 @@ const ProfilePage = () => {
       toast.error("Please select a valid image file.");
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image size must be less than 5 MB.");
       e.target.value = "";
@@ -46,8 +49,8 @@ const ProfilePage = () => {
       const img = document.createElement("img");
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 1200;
-        const MAX_HEIGHT = 1200;
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
         let width = img.width;
         let height = img.height;
 
@@ -66,48 +69,72 @@ const ProfilePage = () => {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
-        
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, 0, 0, width, height);
 
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.98);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
         setPreview(dataUrl);
         setImageData(dataUrl);
+        setImgError(false);
       };
       img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   };
 
-  // Update profile (Name, Email & Image)
+  // Update handle
   const handleUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const updateData = {
-        name: fullName.trim(),
-        email: email.trim(),
-      };
+      const newName = fullName.trim();
+      const newEmail = email.trim();
 
-      if (imageData) {
-        updateData.image = imageData;
+      // STEP 1: name + image
+      const updateData = {};
+      if (newName !== (user.name || "")) updateData.name = newName;
+      if (imageData) updateData.image = imageData;
+
+      if (Object.keys(updateData).length > 0) {
+        const res = await authClient.updateUser(updateData);
+        console.log("updateUser response:", res);
+        if (res?.error) {
+          toast.error(res.error.message || "Failed to update name/image.");
+          setLoading(false);
+          return;
+        }
       }
 
-      const { error } = await authClient.updateUser(updateData);
-
-      if (error) {
-        toast.error(error.message || "Failed to update profile.");
-        return;
+      // STEP 2: email change
+      if (newEmail !== (user.email || "")) {
+        const emailRes = await authClient.changeEmail({
+          newEmail,
+          callbackURL: "/profile",
+        });
+        console.log("changeEmail response:", emailRes);
+        if (emailRes?.error) {
+          toast.error(
+            emailRes.error.message ||
+              "Email update failed. Verification might be required."
+          );
+        }
       }
 
-      // সেশন এবং রাউটার রিফ্রেশ করা যাতে নতুন ডাটা পার্মানেন্টলি সেভ হয়ে থাকে
+      // STEP 3: refetch
       if (refetch) {
-        await refetch();
+        const fresh = await refetch();
+        console.log("Refetched:", fresh);
+        if (fresh?.data?.user) {
+          setFullName(fresh.data.user.name || "");
+          setEmail(fresh.data.user.email || "");
+          setPreview(fresh.data.user.image || null);
+          setImgError(false);
+        }
       }
-      router.refresh();
 
+      router.refresh();
       toast.success("Profile updated successfully!");
       setImageData("");
     } catch (error) {
@@ -121,7 +148,9 @@ const ProfilePage = () => {
   if (isPending) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center bg-[#f7faf7]">
-        <p className="text-green-700 font-semibold animate-pulse text-lg">Loading profile...</p>
+        <p className="text-green-700 font-semibold animate-pulse text-lg">
+          Loading profile...
+        </p>
       </div>
     );
   }
@@ -129,17 +158,19 @@ const ProfilePage = () => {
   if (!user) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center bg-[#f7faf7]">
-        <p className="text-gray-500 font-medium text-lg">Please log in to view your profile.</p>
+        <p className="text-gray-500 font-medium text-lg">
+          Please log in to view your profile.
+        </p>
       </div>
     );
   }
 
-  const profileImage = preview || user.image;
+  const profileImage = preview || user.image || null;
+  const showImage = profileImage && !imgError;
 
   return (
     <section className="px-4 md:px-10 py-10 bg-[#f7faf7] min-h-screen flex items-center justify-center">
       <div className="relative max-w-4xl w-full mx-auto bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden p-8 md:p-12">
-
         {/* Decorative Leaves */}
         <div className="pointer-events-none absolute top-0 right-0">
           <svg
@@ -148,19 +179,13 @@ const ProfilePage = () => {
             fill="none"
             className="w-44 h-28 opacity-80"
           >
-            <path
-              d="M195 5C150 10 115 30 105 60c25 5 60-10 75-35"
-              fill="#a7d7a0"
-            />
+            <path d="M195 5C150 10 115 30 105 60c25 5 60-10 75-35" fill="#a7d7a0" />
             <path
               d="M200 45c-40 0-70 20-78 48 28 3 60-18 68-38"
               fill="#4caf50"
               fillOpacity="0.85"
             />
-            <path
-              d="M140 10c-25 15-40 35-42 58 22-3 40-28 42-58Z"
-              fill="#c9e8c4"
-            />
+            <path d="M140 10c-25 15-40 35-42 58 22-3 40-28 42-58Z" fill="#c9e8c4" />
           </svg>
         </div>
 
@@ -179,17 +204,20 @@ const ProfilePage = () => {
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-10 items-center">
-
-          {/* Left: Avatar + Change Photo */}
+          {/* Left: Avatar — plain <img> + referrerPolicy */}
           <div className="flex flex-col items-center">
             <div className="relative w-40 h-40 rounded-full overflow-hidden shadow-md ring-4 ring-green-50 bg-gray-100 flex items-center justify-center">
-              {profileImage ? (
-                <Image
+              {showImage ? (
+                <img
                   src={profileImage}
                   alt="Profile photo"
-                  fill
-                  unoptimized
                   className="w-full h-full object-cover object-center"
+                  referrerPolicy="no-referrer"
+                  loading="eager"
+                  onError={() => {
+                    console.error("Image failed:", profileImage);
+                    setImgError(true);
+                  }}
                 />
               ) : (
                 <span className="text-5xl font-bold text-green-800">
@@ -216,7 +244,6 @@ const ProfilePage = () => {
 
           {/* Right: Form */}
           <form onSubmit={handleUpdate} className="space-y-5">
-            {/* Full Name */}
             <div>
               <label
                 htmlFor="fullName"
@@ -235,7 +262,6 @@ const ProfilePage = () => {
               />
             </div>
 
-            {/* Email Address */}
             <div>
               <label
                 htmlFor="email"
@@ -254,7 +280,6 @@ const ProfilePage = () => {
               />
             </div>
 
-            {/* Update Button */}
             <div className="pt-2">
               <button
                 type="submit"
@@ -265,7 +290,6 @@ const ProfilePage = () => {
               </button>
             </div>
           </form>
-
         </div>
       </div>
     </section>
