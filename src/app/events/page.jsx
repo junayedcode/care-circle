@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { API_BASE, DEFAULT_THUMBNAIL } from "@/lib/api";
 
 const AllEvents = () => {
   const [events, setEvents] = useState([]);
@@ -14,7 +15,7 @@ const AllEvents = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch("http://localhost:8000/events");
+        const res = await fetch(`${API_BASE}/events`);
         if (res.ok) {
           const data = await res.json();
           
@@ -140,10 +141,11 @@ const AllEvents = () => {
                   {/* Thumbnail Image */}
                   <div className="relative h-52 w-full bg-gray-100">
                     <Image
-                      src={event.thumbnail || "https://images.unsplash.com/photo-1532629345422-7515f3d16bb9"}
+                      src={event.thumbnail || DEFAULT_THUMBNAIL}
                       alt={event.title || "Event Thumbnail"}
                       fill
-                      unoptimized
+                      quality={90}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover"
                     />
                     <span className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-md text-green-800 text-xs font-bold px-3 py-1 rounded-full shadow-sm">

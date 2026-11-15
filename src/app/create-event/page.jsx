@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "react-toastify";
+import { API_BASE } from "@/lib/api";
 
 const CreateEventContent = () => {
   const router = useRouter();
@@ -21,12 +22,14 @@ const CreateEventContent = () => {
 
   const [loading, setLoading] = useState(false);
 
-  // ব্রাউজারে লোড হওয়ার পর সেফলি ডেট সেট করার জন্য useEffect ব্যবহার করা হয়েছে
-  useEffect(() => {
+  // new Date() শুধুমাত্র ব্রাউজার ইন্টারঅ্যাকশনে (onFocus) চলে, তাই
+  // prerender-এ কোনো non-deterministic ভ্যালু তৈরি হয় না।
+  const handleDateFocus = () => {
+    if (minDate) return;
     const today = new Date().toLocaleDateString("en-CA");
     setMinDate(today);
-    setFormData((prev) => ({ ...prev, date: today }));
-  }, []);
+    setFormData((prev) => ({ ...prev, date: prev.date || today }));
+  };
 
   if (isPending) {
     return (
@@ -53,7 +56,7 @@ const CreateEventContent = () => {
         organizerImage: session?.user?.image || "",
       };
 
-      const res = await fetch("http://localhost:8000/events", {
+      const res = await fetch(`${API_BASE}/events`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -150,6 +153,7 @@ const CreateEventContent = () => {
                 name="date"
                 min={minDate}
                 value={formData.date}
+                onFocus={handleDateFocus}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium"

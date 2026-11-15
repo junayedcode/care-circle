@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { API_BASE } from "@/lib/api";
 
 const EventActionButtons = ({ event, currentUser }) => {
   const router = useRouter();
@@ -26,7 +27,7 @@ const EventActionButtons = ({ event, currentUser }) => {
 
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/event/${event._id}/join`, {
+      const res = await fetch(`${API_BASE}/event/${event._id}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -55,7 +56,7 @@ const EventActionButtons = ({ event, currentUser }) => {
   const handleLeave = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/event/${event._id}/leave`, {
+      const res = await fetch(`${API_BASE}/event/${event._id}/leave`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -5,14 +5,21 @@ import Link from "next/link";
 import Image from "next/image";
 import DeleteEventButton from "@/components/DeleteEventModal";
 import EditEventButton from "@/components/EditEventButton";
+import { authClient } from "@/lib/auth-client";
+import { API_BASE, DEFAULT_THUMBNAIL } from "@/lib/api";
 
 const ManageMyEventsPage = () => {
+  const { data: session, isPending } = authClient.useSession();
+  const organizerEmail = session?.user?.email;
+
   const [myEvents, setMyEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchMyEvents = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/events`);
+      const res = await fetch(
+        `${API_BASE}/events/organizer?email=${encodeURIComponent(organizerEmail)}`
+      );
       if (res.ok) {
         const data = await res.json();
         setMyEvents(data);
@@ -25,8 +32,13 @@ const ManageMyEventsPage = () => {
   };
 
   useEffect(() => {
+    if (isPending || !organizerEmail) return;
+    // Data fetch on session resolve — setState calls here run after await,
+    // not synchronously in the effect body.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMyEvents();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPending, organizerEmail]);
 
   
   const handleUpdateSuccess = (updatedId, updatedData) => {
@@ -36,6 +48,32 @@ const ManageMyEventsPage = () => {
       )
     );
   };
+
+  if (isPending) {
+    return (
+      <div className="min-h-screen bg-[#f7faf7] flex items-center justify-center">
+        <p className="text-green-700 font-semibold animate-pulse">
+          Checking authentication...
+        </p>
+      </div>
+    );
+  }
+
+  if (!organizerEmail) {
+    return (
+      <div className="min-h-screen bg-[#f7faf7] flex flex-col items-center justify-center gap-4">
+        <p className="text-gray-500 text-sm font-medium">
+          Please log in to manage your events.
+        </p>
+        <Link
+          href="/login"
+          className="bg-green-700 hover:bg-green-800 text-white text-xs font-semibold px-6 py-3 rounded-xl shadow-sm transition"
+        >
+          Go to Login
+        </Link>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -83,9 +121,11 @@ const ManageMyEventsPage = () => {
                   {/* Thumbnail Banner */}
                   <div className="relative h-48 w-full bg-gray-900">
                     <Image
-                      src={event.thumbnail || "https://images.unsplash.com/photo-1532629345422-7515f3d16bb9"}
+                      src={event.thumbnail || DEFAULT_THUMBNAIL}
                       alt={event.title || "Event Image"}
                       fill
+                      quality={90}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover opacity-90"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
@@ -140,7 +180,7 @@ const ManageMyEventsPage = () => {
                     <DeleteEventButton 
                       eventId={event._id} 
                       onDeleteSuccess={(id) => {
-                        setMyEvents(myEvents.filter((ev) => ev._id !== id));
+                        setMyEvents((prev) => prev.filter((ev) => ev._id !== id));
                       }} 
                     />
                   </div>
@@ -156,7 +196,7 @@ const ManageMyEventsPage = () => {
             </div>
             <h3 className="font-bold text-gray-800 text-base mb-1">No Events Found</h3>
             <p className="text-xs text-gray-500 mb-6">
-              You haven't created any social initiatives yet. Publish a new drive to start managing!
+              You haven&apos;t created any social initiatives yet. Publish a new drive to start managing!
             </p>
             <Link
               href="/create-event"

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { API_BASE } from "@/lib/api";
 
 const DeleteEventButton = ({ eventId, onDeleteSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -11,7 +12,7 @@ const DeleteEventButton = ({ eventId, onDeleteSuccess }) => {
 
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/event/${eventId}`, {
+      const res = await fetch(`${API_BASE}/event/${eventId}`, {
         method: "DELETE",
       });
 

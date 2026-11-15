@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { API_BASE } from "@/lib/api";
 
 export default function EditEventButton({ eventId, onUpdateSuccess }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,7 +18,7 @@ export default function EditEventButton({ eventId, onUpdateSuccess }) {
   const handleOpenModal = async () => {
     setIsOpen(true);
     try {
-      const res = await fetch(`http://localhost:8000/event/${eventId}`);
+      const res = await fetch(`${API_BASE}/event/${eventId}`);
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -42,7 +43,7 @@ export default function EditEventButton({ eventId, onUpdateSuccess }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/event/${eventId}`, {
+      const res = await fetch(`${API_BASE}/event/${eventId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

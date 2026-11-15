@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "../../lib/auth-client";
 import { toast } from "react-toastify";
@@ -17,17 +18,17 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  // Session বদলালেই state sync
-  useEffect(() => {
+  // Session বদলালেই state sync (render-phase adjustment — no effect needed)
+  const [syncedUser, setSyncedUser] = useState(user);
+  if (user !== syncedUser) {
+    setSyncedUser(user);
     if (user) {
-      console.log("=== USER ===", user);
-      console.log("image:", user.image);
       setFullName(user.name || "");
       setEmail(user.email || "");
       setPreview(user.image || null);
       setImgError(false);
     }
-  }, [user]);
+  }
 
   // Image select + compress
   const handleImageChange = (e) => {
@@ -91,19 +92,21 @@ const ProfilePage = () => {
     try {
       const newName = fullName.trim();
       const newEmail = email.trim();
+      let updatedSomething = false;
+      let hadError = false;
 
-      // STEP 1: name + image
+      // STEP 1: name + image (only send fields that actually changed)
       const updateData = {};
       if (newName !== (user.name || "")) updateData.name = newName;
       if (imageData) updateData.image = imageData;
 
       if (Object.keys(updateData).length > 0) {
         const res = await authClient.updateUser(updateData);
-        console.log("updateUser response:", res);
         if (res?.error) {
           toast.error(res.error.message || "Failed to update name/image.");
-          setLoading(false);
-          return;
+          hadError = true;
+        } else {
+          updatedSomething = true;
         }
       }
 
@@ -113,29 +116,30 @@ const ProfilePage = () => {
           newEmail,
           callbackURL: "/profile",
         });
-        console.log("changeEmail response:", emailRes);
         if (emailRes?.error) {
           toast.error(
             emailRes.error.message ||
               "Email update failed. Verification might be required."
           );
+          hadError = true;
+        } else {
+          updatedSomething = true;
         }
       }
 
-      // STEP 3: refetch
-      if (refetch) {
-        const fresh = await refetch();
-        console.log("Refetched:", fresh);
-        if (fresh?.data?.user) {
-          setFullName(fresh.data.user.name || "");
-          setEmail(fresh.data.user.email || "");
-          setPreview(fresh.data.user.image || null);
-          setImgError(false);
-        }
+      if (!updatedSomething && !hadError) {
+        toast.info("No changes to save.");
+        return;
       }
 
+      // STEP 3: refresh the session so the UI reflects saved data
+      // (updates `user`, and the useEffect above syncs the form fields).
+      await refetch?.();
       router.refresh();
-      toast.success("Profile updated successfully!");
+
+      if (!hadError) {
+        toast.success("Profile updated successfully!");
+      }
       setImageData("");
     } catch (error) {
       console.error("Profile update error:", error);
@@ -157,10 +161,16 @@ const ProfilePage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center bg-[#f7faf7]">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center bg-[#f7faf7] gap-4">
         <p className="text-gray-500 font-medium text-lg">
           Please log in to view your profile.
         </p>
+        <Link
+          href="/login"
+          className="bg-green-700 hover:bg-green-800 text-white text-sm font-semibold px-6 py-3 rounded-xl shadow-sm transition"
+        >
+          Go to Login
+        </Link>
       </div>
     );
   }
@@ -208,6 +218,9 @@ const ProfilePage = () => {
           <div className="flex flex-col items-center">
             <div className="relative w-40 h-40 rounded-full overflow-hidden shadow-md ring-4 ring-green-50 bg-gray-100 flex items-center justify-center">
               {showImage ? (
+                /* Plain <img>: data-URLs and remote avatars that need
+                   referrerPolicy/onError aren't suited to next/image. */
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={profileImage}
                   alt="Profile photo"

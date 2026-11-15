@@ -90,7 +90,8 @@ const Navbar = () => {
                       src={session.user.image}
                       alt="Profile"
                       fill
-                      unoptimized 
+                      quality={90}
+                      sizes="36px"
                       className="object-cover"
                     />
                   ) : (
