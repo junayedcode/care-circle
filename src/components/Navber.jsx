@@ -26,8 +26,59 @@ const Navbar = () => {
 
   return (
     <div className="navbar bg-base-100 shadow-sm sticky top-0 z-50 px-4 md:px-8 lg:px-12">
-      {/* Logo */}
-      <div className="navbar-start">
+      {/* Logo + Mobile Menu */}
+      <div className="navbar-start gap-1">
+        {/* Mobile Navigation Dropdown */}
+        <div className="dropdown md:hidden">
+          <div
+            tabIndex={0}
+            role="button"
+            aria-label="Open menu"
+            className="btn btn-ghost btn-sm px-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </div>
+          <ul
+            tabIndex={0}
+            className="menu menu-sm dropdown-content bg-white rounded-2xl z-[2] mt-2 w-52 p-2 shadow-2xl border border-gray-100"
+          >
+            <li>
+              <Link href="/" className="rounded-xl">
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link href="/events" className="rounded-xl">
+                Upcoming Events
+              </Link>
+            </li>
+            <li>
+              <Link href="/create-event" className="rounded-xl">
+                Create Event
+              </Link>
+            </li>
+            <li>
+              <Link href="/manage-events" className="rounded-xl">
+                Manage Events
+              </Link>
+            </li>
+            <li>
+              <Link href="/joined-events" className="rounded-xl">
+                Joined Events
+              </Link>
+            </li>
+          </ul>
+        </div>
+
         <Link href="/" className="flex items-center gap-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -58,7 +109,7 @@ const Navbar = () => {
       </div>
 
       {/* Navigation */}
-      <div className="navbar-center">
+      <div className="navbar-center hidden md:block">
         <Link
           href="/events"
           className="text-sm text-black font-semibold hover:text-green-700 transition-colors"

@@ -1,23 +1,60 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify/unstyled";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
-   const handlegooglelogin = async () => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handlegooglelogin = async () => {
     try {
-      const { data, error } = await authClient.signIn.social({
+      const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/", 
+        callbackURL: "/",
       });
 
-
-      if (data) {
-        toast.success("Logged in successfully with Google!");
+      if (error) {
+        toast.error(error.message || "Google login failed. Please try again.");
+        console.error(error);
       }
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
       console.error(error);
+    }
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get("email");
+      const password = formData.get("password");
+
+      const { error } = await authClient.signIn.email({
+        email,
+        password,
+        rememberMe: formData.get("remember") === "on",
+        callbackURL: "/",
+      });
+
+      if (error) {
+        toast.error(error.message || "Invalid email or password.");
+        return;
+      }
+
+      toast.success("Logged in successfully!");
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -68,7 +105,7 @@ const LoginPage = () => {
             </p>
           </div>
 
-          <form className="space-y-5">
+          <form onSubmit={onSubmit} className="space-y-5">
 
             {/* Email */}
             <div>
@@ -78,6 +115,7 @@ const LoginPage = () => {
 
               <input
                 type="email"
+                name="email"
                 placeholder="Enter your email"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-gray-800"
@@ -90,17 +128,11 @@ const LoginPage = () => {
                 <label className="text-sm font-semibold text-gray-700">
                   Password
                 </label>
-
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-green-700 hover:underline"
-                >
-                  Forgot Password?
-                </Link>
               </div>
 
               <input
                 type="password"
+                name="password"
                 placeholder="Enter your password"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-gray-800"
@@ -123,9 +155,10 @@ const LoginPage = () => {
             {/* Login Button */}
             <button
               type="submit"
-              className="w-full bg-green-800 hover:bg-green-900 text-white font-semibold py-3 rounded-xl transition duration-300 shadow-md"
+              disabled={loading}
+              className="w-full bg-green-800 hover:bg-green-900 text-white font-semibold py-3 rounded-xl transition duration-300 shadow-md disabled:bg-gray-400 cursor-pointer"
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
 
           </form>

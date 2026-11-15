@@ -75,7 +75,11 @@ async function EventDetails({ paramsPromise }) {
       event = await res.json();
     }
   } catch (error) {
-    console.error("Failed to fetch event details:", error);
+    // During build prerendering the runtime aborts pending fetches once the
+    // static shell completes — that rejection is expected and harmless.
+    if (!String(error?.message || "").includes("prerender")) {
+      console.error("Failed to fetch event details:", error);
+    }
   }
 
   if (!event) {

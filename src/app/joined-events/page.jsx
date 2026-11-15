@@ -97,7 +97,11 @@ async function JoinedEventsGrid() {
       joinedEvents = await res.json();
     }
   } catch (error) {
-    console.error("Failed to fetch joined events:", error);
+    // During build prerendering the runtime aborts pending fetches once the
+    // static shell completes — that rejection is expected and harmless.
+    if (!String(error?.message || "").includes("prerender")) {
+      console.error("Failed to fetch joined events:", error);
+    }
   }
 
   if (joinedEvents.length === 0) {

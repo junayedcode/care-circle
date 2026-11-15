@@ -22,8 +22,7 @@ const CreateEventContent = () => {
 
   const [loading, setLoading] = useState(false);
 
-  // new Date() শুধুমাত্র ব্রাউজার ইন্টারঅ্যাকশনে (onFocus) চলে, তাই
-  // prerender-এ কোনো non-deterministic ভ্যালু তৈরি হয় না।
+  
   const handleDateFocus = () => {
     if (minDate) return;
     const today = new Date().toLocaleDateString("en-CA");

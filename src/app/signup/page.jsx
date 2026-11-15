@@ -168,8 +168,7 @@ const SignPage = () => {
               <input
                 type="url"
                 name="image"
-                placeholder="Enter your profile image URL"
-                required
+                placeholder="Enter your profile image URL (optional)"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-gray-800"
               />
             </div>
