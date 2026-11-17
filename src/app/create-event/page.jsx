@@ -6,6 +6,7 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "react-toastify/unstyled";
 import { API_BASE } from "@/lib/api";
 
+
 const CreateEventContent = () => {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
@@ -62,15 +63,21 @@ const CreateEventContent = () => {
         organizerImage: session.user.image || "",
       };
 
-      const res = await fetch(`${API_BASE}/events`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // send the Better Auth session cookie
-        body: JSON.stringify(eventPayload),
-      });
+     const { data: tokenData, error: tokenError } =
+  await authClient.token();
 
+if (tokenError || !tokenData?.token) {
+  throw new Error("Please login first");
+}
+
+const res = await fetch(`${API_BASE}/events`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${tokenData.token}`,
+  },
+  body: JSON.stringify(eventPayload),
+});
       if (res.ok) {
         toast.success("Event created successfully!");
         router.push("/events");

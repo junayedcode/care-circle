@@ -12,7 +12,7 @@ const AllEvents = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
 
-  // ১. ব্যাকএন্ড থেকে সব ইভেন্ট ফেচ করা
+  
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -40,14 +40,14 @@ const AllEvents = () => {
     fetchEvents();
   }, []);
 
-  // ২. ক্যাটাগরি এবং সার্চ টার্ম অনুযায়ী একসাথে ফিল্টারিং লজিক
+
   const matchesFilters = (event) => {
-    // ক্যাটাগরি চেক
+   
     const matchesCategory =
       selectedCategory === "All" ||
       event.type?.toLowerCase() === selectedCategory.toLowerCase();
 
-    // সার্চ টার্ম চেক (টাইটেল, লোকেশন বা ডেসক্রিপশনের যেকোনো একটি মিলে গেলে হবে)
+    
     const term = searchTerm.toLowerCase().trim();
     const matchesSearch =
       term === "" ||
@@ -58,8 +58,7 @@ const AllEvents = () => {
     return matchesCategory && matchesSearch;
   };
 
-  // ৩. ডেট-ভিত্তিক সর্টিং: আজকের বা ভবিষ্যতের ইভেন্ট = Active/Upcoming,
-  //    তার আগের ইভেন্ট = Past/Completed
+
   const isValidDate = (event) => {
     if (!event.date) return false;
     return !Number.isNaN(new Date(event.date).getTime());

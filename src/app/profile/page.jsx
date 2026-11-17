@@ -18,7 +18,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  // Session বদলালেই state sync (render-phase adjustment — no effect needed)
+  
   const [syncedUser, setSyncedUser] = useState(user);
   if (user !== syncedUser) {
     setSyncedUser(user);

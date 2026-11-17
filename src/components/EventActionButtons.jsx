@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify/unstyled";
 import { API_BASE } from "@/lib/api";
+import { authFetch } from "@/lib/auth-fetch";
 
 const EventActionButtons = ({ event, currentUser }) => {
   const router = useRouter();
@@ -27,10 +28,9 @@ const EventActionButtons = ({ event, currentUser }) => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/event/${event._id}/join`, {
+      const res = await authFetch(`${API_BASE}/event/${event._id}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // send the Better Auth session cookie
         body: JSON.stringify({
           email: currentUser.email,
           name: currentUser.name || "Volunteer",
@@ -57,10 +57,9 @@ const EventActionButtons = ({ event, currentUser }) => {
   const handleLeave = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/event/${event._id}/leave`, {
+      const res = await authFetch(`${API_BASE}/event/${event._id}/leave`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // send the Better Auth session cookie
         body: JSON.stringify({
           email: currentUser.email,
         }),

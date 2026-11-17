@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify/unstyled";
 import { API_BASE } from "@/lib/api";
+import { authFetch } from "@/lib/auth-fetch";
 
 const DeleteEventButton = ({ eventId, onDeleteSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -12,9 +13,8 @@ const DeleteEventButton = ({ eventId, onDeleteSuccess }) => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/event/${eventId}`, {
+      const res = await authFetch(`${API_BASE}/event/${eventId}`, {
         method: "DELETE",
-        credentials: "include", // send the Better Auth session cookie
       });
 
       const data = await res.json();

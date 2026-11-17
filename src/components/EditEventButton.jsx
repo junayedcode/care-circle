@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify/unstyled";
 import { API_BASE } from "@/lib/api";
+import { authFetch } from "@/lib/auth-fetch";
 
 export default function EditEventButton({ eventId, onUpdateSuccess }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,12 +48,11 @@ export default function EditEventButton({ eventId, onUpdateSuccess }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/event/${eventId}`, {
+      const res = await authFetch(`${API_BASE}/event/${eventId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // send the Better Auth session cookie
         body: JSON.stringify(formData),
       });
 

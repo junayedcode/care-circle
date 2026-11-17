@@ -1,15 +1,35 @@
 
 import { betterAuth } from "better-auth";
+import { jwt } from "better-auth/plugins";
 import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "@better-auth/mongo-adapter";
 
-const client = new MongoClient(process.env.MONGODB_URL);
+const mongoUrl = process.env.MONGODB_URL;
+
+if (!mongoUrl) {
+  throw new Error("MONGODB_URL is missing");
+}
+
+if (!process.env.BETTER_AUTH_SECRET) {
+  throw new Error("BETTER_AUTH_SECRET is missing");
+}
+
+const client = new MongoClient(mongoUrl);
 const db = client.db("care-circle");
 
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL,
+
+  secret: process.env.BETTER_AUTH_SECRET,
+
   database: mongodbAdapter(db, {
     client,
   }),
+
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://care-circle-navy-one.vercel.app",
+  ],
 
   emailAndPassword: {
     enabled: true,
@@ -30,18 +50,14 @@ export const auth = betterAuth({
     },
   },
 
-  // The Express API lives on a different site than the frontend in production
-  // (e.g. Vercel frontend → Render backend), so the session cookie must be
-  // SameSite=None; Secure to be sent on cross-origin API calls. In development
-  // (localhost:3000 → localhost:8000 is same-site) the default Lax cookie works.
-  ...(process.env.NODE_ENV === "production"
-    ? {
-        advanced: {
-          defaultCookieAttributes: {
-            sameSite: "none",
-            secure: true,
-          },
-        },
-      }
-    : {}),
+  plugins: [
+    jwt(),
+  ],
+    session: {
+    cookieCache: {
+      enabled: true,
+      strategy: "jwt",
+      maxAge: 7 * 24 * 60 * 60,
+    },
+  },
 });
