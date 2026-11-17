@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 import { API_BASE } from "@/lib/api";
 
 const DeleteEventButton = ({ eventId, onDeleteSuccess }) => {
@@ -14,6 +14,7 @@ const DeleteEventButton = ({ eventId, onDeleteSuccess }) => {
     try {
       const res = await fetch(`${API_BASE}/event/${eventId}`, {
         method: "DELETE",
+        credentials: "include", // send the Better Auth session cookie
       });
 
       const data = await res.json();

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 import { API_BASE } from "@/lib/api";
 
 const EventActionButtons = ({ event, currentUser }) => {
@@ -30,6 +30,7 @@ const EventActionButtons = ({ event, currentUser }) => {
       const res = await fetch(`${API_BASE}/event/${event._id}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // send the Better Auth session cookie
         body: JSON.stringify({
           email: currentUser.email,
           name: currentUser.name || "Volunteer",
@@ -59,6 +60,7 @@ const EventActionButtons = ({ event, currentUser }) => {
       const res = await fetch(`${API_BASE}/event/${event._id}/leave`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // send the Better Auth session cookie
         body: JSON.stringify({
           email: currentUser.email,
         }),

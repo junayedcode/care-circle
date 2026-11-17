@@ -18,7 +18,8 @@ const ManageMyEventsPage = () => {
   const fetchMyEvents = async () => {
     try {
       const res = await fetch(
-        `${API_BASE}/events/organizer?email=${encodeURIComponent(organizerEmail)}`
+        `${API_BASE}/events/organizer?email=${encodeURIComponent(organizerEmail)}`,
+        { cache: "no-store" } // reflect create/edit/delete immediately
       );
       if (res.ok) {
         const data = await res.json();

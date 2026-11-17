@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "../../lib/auth-client";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 
 const ProfilePage = () => {
   const router = useRouter();

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { toast } from "react-toastify/unstyled";
 import { API_BASE } from "@/lib/api";
 
 export default function EditEventButton({ eventId, onUpdateSuccess }) {
@@ -18,7 +19,10 @@ export default function EditEventButton({ eventId, onUpdateSuccess }) {
   const handleOpenModal = async () => {
     setIsOpen(true);
     try {
-      const res = await fetch(`${API_BASE}/event/${eventId}`);
+      const res = await fetch(`${API_BASE}/event/${eventId}`, {
+        cache: "no-store", // always edit the latest saved version
+        credentials: "include",
+      });
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -48,17 +52,26 @@ export default function EditEventButton({ eventId, onUpdateSuccess }) {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // send the Better Auth session cookie
         body: JSON.stringify(formData),
       });
 
       if (res.ok) {
         setIsOpen(false);
+        toast.success("Event updated successfully!");
         
         if (onUpdateSuccess) {
           onUpdateSuccess(eventId, formData);
         }
       } else {
-        alert("Failed to update event");
+        let message = "Failed to update event";
+        try {
+          const data = await res.json();
+          if (data?.message || data?.error) message = data.message || data.error;
+        } catch {
+          /* non-JSON error body */
+        }
+        toast.error(message);
       }
     } catch (error) {
       console.error("Error updating event:", error);

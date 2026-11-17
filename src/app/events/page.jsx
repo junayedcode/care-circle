@@ -2,38 +2,37 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { API_BASE, DEFAULT_THUMBNAIL } from "@/lib/api";
+import EventCard from "@/components/EventCard";
+import { API_BASE } from "@/lib/api";
 
 const AllEvents = () => {
   const [events, setEvents] = useState([]);
+  const [today, setToday] = useState(null); // set inside useEffect (deferred)
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
 
-  // ১. ব্যাকএন্ড থেকে ইভেন্ট ফেচ করা এবং পাস্ট ডেট বাদ দেওয়া
+  // ১. ব্যাকএন্ড থেকে সব ইভেন্ট ফেচ করা
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch(`${API_BASE}/events`);
+        // `cache: "no-store"` bypasses the browser's HTTP cache so events
+        // created moments ago show up immediately (and on every visit).
+        // Note: `export const dynamic = "force-dynamic"` cannot be used here —
+        // this is a client component, and it is incompatible with the
+        // `cacheComponents` option enabled in next.config.mjs.
+        const res = await fetch(`${API_BASE}/events`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
-          
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          // শুধু ফিউচার বা আজকের ডেটের ইভেন্টগুলো সেভ করা
-          const upcomingEvents = data.filter((event) => {
-            if (!event.date) return false;
-            const eventDate = new Date(event.date);
-            return eventDate >= today;
-          });
-
-          setEvents(upcomingEvents);
+          setEvents(data);
         }
       } catch (error) {
         console.error("Failed to fetch events from backend:", error);
       } finally {
+        // Deferred `new Date()` read — cacheComponents forbids unstable time
+        // values during prerender, so `today` is only set after data loads.
+        const now = new Date();
+        setToday(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
         setLoading(false);
       }
     };
@@ -41,8 +40,8 @@ const AllEvents = () => {
     fetchEvents();
   }, []);
 
-  // ২. ক্যাটাগরি এবং সার্চ টার্ম অনুযায়ী একসাথে ফিল্টারিং লজিক
-  const filteredEvents = events.filter((event) => {
+  // ২. ক্যাটাগরি এবং সার্চ টার্ম অনুযায়ী একসাথে ফিল্টারিং লজিক
+  const matchesFilters = (event) => {
     // ক্যাটাগরি চেক
     const matchesCategory =
       selectedCategory === "All" ||
@@ -57,7 +56,24 @@ const AllEvents = () => {
       event.description?.toLowerCase().includes(term);
 
     return matchesCategory && matchesSearch;
-  });
+  };
+
+  // ৩. ডেট-ভিত্তিক সর্টিং: আজকের বা ভবিষ্যতের ইভেন্ট = Active/Upcoming,
+  //    তার আগের ইভেন্ট = Past/Completed
+  const isValidDate = (event) => {
+    if (!event.date) return false;
+    return !Number.isNaN(new Date(event.date).getTime());
+  };
+
+  const upcomingEvents = events
+    .filter((event) => isValidDate(event) && new Date(event.date) >= today)
+    .filter(matchesFilters)
+    .sort((a, b) => new Date(a.date) - new Date(b.date)); // soonest first
+
+  const pastEvents = events
+    .filter((event) => isValidDate(event) && new Date(event.date) < today)
+    .filter(matchesFilters)
+    .sort((a, b) => new Date(b.date) - new Date(a.date)); // most recent first
 
   const categories = ["All", "Donation", "Cleanup", "Plantation", "Winter Relief", "FoodDistribution", "Health Camp"];
 
@@ -68,13 +84,15 @@ const AllEvents = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <div className="inline-block bg-green-50 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase tracking-wider">
-              🌱 Future Community Drives
+              🌱 Community Initiatives
             </div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-[#123c2c]">
-              Upcoming Events
+              All Initiatives
             </h1>
             <p className="text-gray-500 mt-1 text-sm md:text-base max-w-2xl">
-              Discover verified volunteer initiatives scheduled for upcoming dates. Past events are automatically excluded so you can focus on active drives that need support.
+              Browse every community drive in one place. Active and upcoming
+              initiatives appear at the top so you can join right away, while
+              past initiatives are archived at the bottom.
             </p>
           </div>
 
@@ -118,81 +136,77 @@ const AllEvents = () => {
           </div>
         </div>
 
-        {/* Loading State */}
-        {loading ? (
+        {/* Loading State (also until `today` is computed post-hydration) */}
+        {loading || !today ? (
           <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
-            <p className="text-green-700 font-semibold text-lg animate-pulse">Loading upcoming events...</p>
+            <p className="text-green-700 font-semibold text-lg animate-pulse">Loading initiatives...</p>
           </div>
-        ) : filteredEvents.length === 0 ? (
+        ) : upcomingEvents.length === 0 && pastEvents.length === 0 ? (
           /* Empty State */
           <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
-            <p className="text-gray-500 text-lg font-medium">No matching upcoming events found.</p>
+            <p className="text-gray-500 text-lg font-medium">No matching events found.</p>
             <p className="text-gray-400 text-sm mt-1">Try searching with a different keyword or category.</p>
           </div>
         ) : (
-          /* Events Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map((event) => (
-              <div
-                key={event._id}
-                className="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100 flex flex-col justify-between hover:shadow-xl transition duration-300"
-              >
-                <div>
-                  {/* Thumbnail Image */}
-                  <div className="relative h-52 w-full bg-gray-100">
-                    <Image
-                      src={event.thumbnail || DEFAULT_THUMBNAIL}
-                      alt={event.title || "Event Thumbnail"}
-                      fill
-                      quality={90}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover"
-                    />
-                    <span className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-md text-green-800 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                      {event.type}
-                    </span>
-                  </div>
-
-                  {/* Card Content */}
-                  <div className="p-6">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 mb-2">
-                      📅 {event.date}
-                    </div>
-
-                    <h2 className="text-xl font-bold text-[#123c2c] mb-2 line-clamp-1">
-                      {event.title}
-                    </h2>
-
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
-                      📍 {event.location}
-                    </div>
-
-                    <p className="text-gray-600 text-sm line-clamp-2 mb-4">
-                      {event.description}
-                    </p>
-
-                    <div className="text-xs text-gray-400 truncate border-t border-gray-100 pt-3">
-                      Organizer: <span className="text-gray-600 font-medium">{event.organizerEmail}</span>
-                    </div>
-                  </div>
+          <>
+            {/* TOP: Active / Upcoming Initiatives */}
+            <section id="upcoming-initiatives" className="mb-14">
+              <SectionHeading
+                accent="bg-green-50 text-green-700"
+                title="Upcoming Initiatives"
+                subtitle="Happening today or scheduled for the coming days — join before they fill up."
+                count={upcomingEvents.length}
+              />
+              {upcomingEvents.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-3xl shadow-sm border border-gray-100">
+                  <p className="text-gray-500 text-base font-medium">No upcoming initiatives match your filters.</p>
                 </div>
-
-                {/* View Event Button */}
-                <div className="p-6 pt-0">
-                  <Link
-                    href={`/events/${event._id}`}
-                    className="block w-full text-center bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded-2xl transition duration-300 shadow-sm text-sm"
-                  >
-                    View Event →
-                  </Link>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {upcomingEvents.map((event) => (
+                    <EventCard key={event._id} event={event} status="upcoming" />
+                  ))}
                 </div>
-              </div>
-            ))}
-          </div>
+              )}
+            </section>
+
+            {/* BOTTOM: Past / Completed Initiatives */}
+            {pastEvents.length > 0 && (
+              <section id="past-initiatives">
+                <SectionHeading
+                  accent="bg-amber-50 text-amber-700"
+                  title="Past Initiatives"
+                  subtitle="Completed community drives — browse the archive of what we have achieved together."
+                  count={pastEvents.length}
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {pastEvents.map((event) => (
+                    <EventCard key={event._id} event={event} status="past" />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </div>
     </main>
   );
 };
+
+function SectionHeading({ accent, title, subtitle, count }) {
+  return (
+    <div className="flex flex-col md:flex-row md:items-end justify-between gap-2 mb-6">
+      <div>
+        <div className={`inline-block text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase tracking-wider ${accent}`}>
+          CareCircle
+        </div>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-[#123c2c]">
+          {title} <span className="text-gray-400 text-base font-semibold">({count})</span>
+        </h2>
+        <p className="text-gray-500 text-sm mt-1 max-w-2xl">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
 
 export default AllEvents;

@@ -29,4 +29,19 @@ export const auth = betterAuth({
       overrideUserInfoOnSignIn: true,
     },
   },
+
+  // The Express API lives on a different site than the frontend in production
+  // (e.g. Vercel frontend → Render backend), so the session cookie must be
+  // SameSite=None; Secure to be sent on cross-origin API calls. In development
+  // (localhost:3000 → localhost:8000 is same-site) the default Lax cookie works.
+  ...(process.env.NODE_ENV === "production"
+    ? {
+        advanced: {
+          defaultCookieAttributes: {
+            sameSite: "none",
+            secure: true,
+          },
+        },
+      }
+    : {}),
 });

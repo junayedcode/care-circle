@@ -2,18 +2,28 @@
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { toast } from "react-toastify/unstyled";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-const LoginPage = () => {
+const LoginPageContent = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+
+  // The auth proxy redirects protected pages to /login?callbackUrl=<path>.
+  // Return the user there after logging in — only same-site paths are allowed
+  // (must start with a single "/" so an attacker can't use "//evil.com").
+  const rawCallbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl =
+    rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//")
+      ? rawCallbackUrl
+      : "/";
 
   const handlegooglelogin = async () => {
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/",
+        callbackURL: callbackUrl,
       });
 
       if (error) {
@@ -48,7 +58,7 @@ const LoginPage = () => {
       }
 
       toast.success("Logged in successfully!");
-      router.push("/");
+      router.push(callbackUrl);
       router.refresh();
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
@@ -204,4 +214,10 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#f7faf7]"></main>}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}

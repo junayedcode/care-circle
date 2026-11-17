@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 
 const Navbar = () => {
   const router = useRouter();

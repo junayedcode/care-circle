@@ -100,10 +100,10 @@ const Footer = () => {
             </li>
             <li>
               <Link
-                href="/#featured-events"
+                href="/#upcoming-initiatives"
                 className="hover:text-white transition-colors"
               >
-                Featured Events
+                Upcoming Initiatives
               </Link>
             </li>
             <li>

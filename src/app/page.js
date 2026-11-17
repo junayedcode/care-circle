@@ -82,7 +82,7 @@ function EventsFallback() {
 
 // ---------- Dynamic content (streams in at request time) ----------
 
-function EventSection({ id, title, subtitle, accentClass, events, emptyText }) {
+function EventSection({ id, title, subtitle, accentClass, events, status, emptyText, showViewAll }) {
   if (!events || events.length === 0) {
     if (!emptyText) return null; // hide the section entirely when empty
     return (
@@ -105,7 +105,7 @@ function EventSection({ id, title, subtitle, accentClass, events, emptyText }) {
               href="/events"
               className="inline-block mt-4 bg-green-700 hover:bg-green-800 text-white text-xs font-semibold px-6 py-3 rounded-xl transition duration-300 shadow-sm"
             >
-              Explore Upcoming Events
+              Explore Upcoming Initiatives
             </Link>
           </div>
         </div>
@@ -120,11 +120,11 @@ function EventSection({ id, title, subtitle, accentClass, events, emptyText }) {
           title={title}
           subtitle={subtitle}
           accentClass={accentClass}
-          showViewAll
+          showViewAll={showViewAll}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
-            <EventCard key={event._id} event={event} />
+            <EventCard key={event._id} event={event} status={status} />
           ))}
         </div>
       </div>
@@ -162,6 +162,8 @@ async function EventSections() {
   let events = [];
 
   try {
+    // `cache: "no-store"` keeps this fetch uncached so brand-new events
+    // appear on the home page immediately.
     const res = await fetch(`${API_BASE}/events`, { cache: "no-store" });
     if (res.ok) {
       events = await res.json();
@@ -185,45 +187,42 @@ async function EventSections() {
     return !Number.isNaN(d.getTime());
   };
 
-  const sorted = events
+  // Conditional check requested: an event is active/upcoming when its date is
+  // today or in the future; otherwise it is past/completed.
+  const upcoming = events
     .filter(isValidDate)
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
+    .filter((e) => new Date(e.date) >= today)
+    .sort((a, b) => new Date(a.date) - new Date(b.date)); // soonest first
 
-  const upcoming = sorted.filter((e) => new Date(e.date) >= today);
-  const previous = sorted
+  const past = events
+    .filter(isValidDate)
     .filter((e) => new Date(e.date) < today)
-    .reverse(); // most recently finished first
-
-  const featured = upcoming.slice(0, 3);
-  const moreUpcoming = upcoming.slice(3, 9);
+    .sort((a, b) => new Date(b.date) - new Date(a.date)); // most recent first
 
   return (
     <>
+      {/* TOP: upcoming/active initiatives (Join-ready) */}
       <EventSection
-        id="featured-events"
-        title="Featured Events"
-        subtitle="Hand-picked initiatives happening soon — the ones our community is most excited about."
+        id="upcoming-initiatives"
+        title="Upcoming Initiatives"
+        subtitle="Community drives happening today or scheduled for the coming days. Find one near you and click Join Initiative to take part."
         accentClass="bg-green-50 text-green-700"
-        events={featured}
-        emptyText="No upcoming events right now."
+        events={upcoming}
+        status="upcoming"
+        emptyText="No upcoming initiatives right now."
+        showViewAll
       />
 
+      {/* BOTTOM: past/completed initiatives (grayscale, view-only) */}
       <EventSection
-        id="upcoming-events"
-        title="Upcoming Events"
-        subtitle="More community drives scheduled in the coming days. Find one near you and sign up."
-        accentClass="bg-emerald-50 text-emerald-700"
-        events={moreUpcoming}
-        emptyText={null} /* hidden when featured already shows everything */
-      />
-
-      <EventSection
-        id="previous-events"
-        title="Previous Events"
+        id="past-initiatives"
+        title="Past Initiatives"
         subtitle="A look back at the drives our community has already completed."
         accentClass="bg-amber-50 text-amber-700"
-        events={previous}
-        emptyText={null} /* hidden when there are no past events */
+        events={past}
+        status="past"
+        emptyText={null} /* hidden entirely when there are no past events */
+        showViewAll={false}
       />
     </>
   );

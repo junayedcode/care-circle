@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 import { API_BASE } from "@/lib/api";
 
 const CreateEventContent = () => {
@@ -14,7 +14,7 @@ const CreateEventContent = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    category: "Donation",
+    type: "Donation",
     date: "",
     location: "",
     thumbnail: "",
@@ -45,14 +45,21 @@ const CreateEventContent = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // The backend requires a verified session — never publish anonymously.
+    if (!session?.user?.email) {
+      toast.error("Please log in to create an event.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const eventPayload = {
         ...formData,
-        organizerEmail: session?.user?.email || "anonymous@gmail.com",
-        organizerName: session?.user?.name || "Anonymous",
-        organizerImage: session?.user?.image || "",
+        organizerEmail: session.user.email,
+        organizerName: session.user.name || "Organizer",
+        organizerImage: session.user.image || "",
       };
 
       const res = await fetch(`${API_BASE}/events`, {
@@ -60,6 +67,7 @@ const CreateEventContent = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // send the Better Auth session cookie
         body: JSON.stringify(eventPayload),
       });
 
@@ -68,7 +76,14 @@ const CreateEventContent = () => {
         router.push("/events");
         router.refresh();
       } else {
-        toast.error("Failed to create event. Please try again.");
+        let message = "Failed to create event. Please try again.";
+        try {
+          const data = await res.json();
+          if (data?.message || data?.error) message = data.message || data.error;
+        } catch {
+          /* non-JSON error body */
+        }
+        toast.error(message);
       }
     } catch (error) {
       console.error("Error creating event:", error);
@@ -130,8 +145,8 @@ const CreateEventContent = () => {
                 Category / Type
               </label>
               <select
-                name="category"
-                value={formData.category}
+                name="type"
+                value={formData.type}
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium"
               >
