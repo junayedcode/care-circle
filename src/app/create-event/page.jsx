@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, Suspense } from "react";
@@ -6,12 +7,12 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "react-toastify/unstyled";
 import { API_BASE } from "@/lib/api";
 
-
 const CreateEventContent = () => {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   const [minDate, setMinDate] = useState("");
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -23,31 +24,30 @@ const CreateEventContent = () => {
 
   const [loading, setLoading] = useState(false);
 
-  
   const handleDateFocus = () => {
     if (minDate) return;
-    const today = new Date().toLocaleDateString("en-CA");
-    setMinDate(today);
-    setFormData((prev) => ({ ...prev, date: prev.date || today }));
-  };
 
-  if (isPending) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <p className="text-green-700 font-semibold animate-pulse">Checking authentication...</p>
-      </div>
-    );
-  }
+    const today = new Date().toLocaleDateString("en-CA");
+
+    setMinDate(today);
+    setFormData((prev) => ({
+      ...prev,
+      date: prev.date || today,
+    }));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // The backend requires a verified session — never publish anonymously.
     if (!session?.user?.email) {
       toast.error("Please log in to create an event.");
       return;
@@ -63,38 +63,59 @@ const CreateEventContent = () => {
         organizerImage: session.user.image || "",
       };
 
-     const { data: tokenData, error: tokenError } =
-  await authClient.token();
+      // Get JWT token from Better Auth
+      const {
+        data: tokenData,
+        error: tokenError,
+      } = await authClient.token();
 
-if (tokenError || !tokenData?.token) {
-  throw new Error("Please login first");
-}
+      // Debug information (never print the actual token)
+      console.log("TOKEN ERROR:", tokenError);
+      console.log("TOKEN EXISTS:", !!tokenData?.token);
+      console.log("API URL:", API_BASE);
 
-const res = await fetch(`${API_BASE}/events`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${tokenData.token}`,
-  },
-  body: JSON.stringify(eventPayload),
-});
+      if (tokenError || !tokenData?.token) {
+        throw new Error(
+          tokenError?.message || "Unable to get authentication token"
+        );
+      }
+
+      // Send event request to backend
+      const res = await fetch(`${API_BASE}/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${tokenData.token}`,
+        },
+        body: JSON.stringify(eventPayload),
+      });
+
+      console.log("EVENT RESPONSE STATUS:", res.status);
+
       if (res.ok) {
         toast.success("Event created successfully!");
+
         router.push("/events");
         router.refresh();
       } else {
         let message = "Failed to create event. Please try again.";
+
         try {
           const data = await res.json();
-          if (data?.message || data?.error) message = data.message || data.error;
+
+          if (data?.message || data?.error) {
+            message = data.message || data.error;
+          }
         } catch {
-          /* non-JSON error body */
+          // Response is not JSON
         }
+
+        console.error("EVENT API ERROR:", message);
         toast.error(message);
       }
     } catch (error) {
       console.error("Error creating event:", error);
-      toast.error("Something went wrong!");
+      toast.error(error.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
@@ -109,31 +130,45 @@ const res = await fetch(`${API_BASE}/events`, {
     "Health Camp",
   ];
 
+  if (isPending) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <p className="text-green-700 font-semibold animate-pulse">
+          Checking authentication...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <section className="px-4 md:px-10 py-10 bg-[#f7faf7] min-h-screen">
       <div className="max-w-3xl mx-auto bg-white rounded-[32px] shadow-sm border border-gray-100 p-8 md:p-12">
-        
+
         {/* Header */}
         <div className="mb-8">
           <div className="inline-block bg-green-50 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase tracking-wider">
             🌱 Community Initiative
           </div>
+
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#123c2c]">
             Create Volunteer Event
           </h1>
+
           <p className="text-gray-500 text-sm mt-1">
-            Fill in the details below to launch a new community drive and invite volunteers.
+            Fill in the details below to launch a new community drive and
+            invite volunteers.
           </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          
+
           {/* Title */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
               Event Title
             </label>
+
             <input
               type="text"
               name="title"
@@ -145,12 +180,14 @@ const res = await fetch(`${API_BASE}/events`, {
             />
           </div>
 
-          {/* Category & Date Grid */}
+          {/* Category & Date */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                 Category / Type
               </label>
+
               <select
                 name="type"
                 value={formData.type}
@@ -169,6 +206,7 @@ const res = await fetch(`${API_BASE}/events`, {
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                 Event Date
               </label>
+
               <input
                 type="date"
                 name="date"
@@ -187,6 +225,7 @@ const res = await fetch(`${API_BASE}/events`, {
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
               Location / Venue
             </label>
+
             <input
               type="text"
               name="location"
@@ -198,11 +237,12 @@ const res = await fetch(`${API_BASE}/events`, {
             />
           </div>
 
-          {/* Thumbnail Image URL */}
+          {/* Thumbnail */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
               Thumbnail Image URL
             </label>
+
             <input
               type="url"
               name="thumbnail"
@@ -211,7 +251,10 @@ const res = await fetch(`${API_BASE}/events`, {
               placeholder="https://images.unsplash.com/..."
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 transition text-sm text-gray-800 font-medium"
             />
-            <p className="text-[11px] text-gray-400 mt-1">Leave empty to use a default community photo.</p>
+
+            <p className="text-[11px] text-gray-400 mt-1">
+              Leave empty to use a default community photo.
+            </p>
           </div>
 
           {/* Description */}
@@ -219,6 +262,7 @@ const res = await fetch(`${API_BASE}/events`, {
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
               Description
             </label>
+
             <textarea
               name="description"
               rows="4"
@@ -230,7 +274,7 @@ const res = await fetch(`${API_BASE}/events`, {
             ></textarea>
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
@@ -245,10 +289,15 @@ const res = await fetch(`${API_BASE}/events`, {
   );
 };
 
-
 export default function CreateEventPage() {
   return (
-    <Suspense fallback={<div className="text-center py-20 text-green-700 font-semibold">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="text-center py-20 text-green-700 font-semibold">
+          Loading...
+        </div>
+      }
+    >
       <CreateEventContent />
     </Suspense>
   );
