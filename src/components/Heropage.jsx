@@ -47,12 +47,12 @@ const Heropage = () => {
                   Explore Events →
                 </Link>
 
-                <a
-                  href="#about"
+                <Link
+                  href="/about"
                   className="btn bg-white/70 border border-green-700 text-green-800 hover:bg-green-800 hover:text-white rounded-full px-8 h-12 min-h-12 transition-all duration-300"
                 >
-                  Learn More
-                </a>
+                  Learn About Us
+                </Link>
 
               </div>
 

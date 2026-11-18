@@ -12,6 +12,7 @@ export default function Home() {
     <>
       <Heropage />
       <FeatureCards />
+      <AboutTeaser />
 
       {/* Event data streams in inside one Suspense boundary — the shell above
           stays static and is served instantly under cacheComponents. */}
@@ -51,6 +52,75 @@ export default function Home() {
         </div>
       </section>
     </>
+  );
+}
+
+function AboutTeaser() {
+  return (
+    <section className="bg-white border-y border-green-100/70 px-6 md:px-14 lg:px-20 py-12 md:py-14">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-8 lg:gap-12 items-center">
+        <div>
+          <p className="inline-flex items-center gap-2 text-xs font-bold text-green-700 bg-green-50 px-3.5 py-1.5 rounded-full mb-3 uppercase tracking-wider">
+            💚 About CareCircle
+          </p>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-[#123c2c] leading-tight">
+            A circle of care, powered by community.
+          </h2>
+          <p className="text-gray-600 text-sm md:text-base mt-3 leading-relaxed max-w-2xl">
+            CareCircle is a community volunteering platform that connects
+            caring people with local social development events — from donation
+            drives and cleanups to plantation days, winter relief, and health
+            camps.
+          </p>
+          <Link
+            href="/about"
+            className="inline-flex items-center gap-2 mt-6 bg-green-700 hover:bg-green-800 text-white text-sm font-semibold px-6 py-3 rounded-full shadow-sm hover:shadow-md transition-all duration-300"
+          >
+            Learn More <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+
+        <div className="bg-[#f7faf7] rounded-3xl border border-green-100 p-6 md:p-7 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-green-100 text-green-700 flex items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5"
+              >
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                <path d="m9 11 2 2 4-4" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-[#123c2c]">
+              Our Mission
+            </h3>
+          </div>
+
+          <p className="text-sm text-gray-600 mt-4 leading-relaxed">
+            To make volunteering simple, accessible, and meaningful by
+            connecting people who care with initiatives that create real social
+            impact.
+          </p>
+
+          <div className="flex flex-wrap gap-2 mt-5">
+            {["Volunteer", "Connect", "Create Change"].map((chip) => (
+              <span
+                key={chip}
+                className="text-[11px] font-semibold text-green-800 bg-green-50 border border-green-100 px-3 py-1 rounded-full"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

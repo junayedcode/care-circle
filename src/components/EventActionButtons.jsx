@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify/unstyled";
 import { API_BASE } from "@/lib/api";
 import { authFetch } from "@/lib/auth-fetch";
+import { isEventExpired } from "@/lib/event-date";
 
-const EventActionButtons = ({ event, currentUser }) => {
+const EventActionButtons = ({ event, currentUser, isExpired }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const isCreator = currentUser?.email && event.organizerEmail === currentUser.email;
   const isJoined = currentUser?.email && event.volunteers?.some((vol) => vol.email === currentUser.email);
+  const expired = isExpired ?? isEventExpired(event.date);
 
  
   const handleShare = () => {
@@ -21,6 +23,15 @@ const EventActionButtons = ({ event, currentUser }) => {
 
   
   const handleJoin = async () => {
+    // Re-check at click time in case the page has been open across the
+    // event deadline. The API enforces the same rule as a final guard.
+    if (isEventExpired(event.date)) {
+      toast.error(
+        "This event has already ended. Joining is no longer available."
+      );
+      return;
+    }
+
     if (!currentUser?.email) {
       toast.error("Please login first to join this event!");
       return;
@@ -111,6 +122,20 @@ const EventActionButtons = ({ event, currentUser }) => {
           <span>✓</span>
           <span>{loading ? "Processing..." : "Joined (Click to Leave)"}</span>
         </button>
+      ) : expired ? (
+        <div className="flex flex-col items-start sm:items-end gap-1.5">
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            className="bg-gray-200 text-gray-500 font-semibold px-6 py-3 rounded-xl text-sm cursor-not-allowed"
+          >
+            Event Ended
+          </button>
+          <p className="text-[11px] text-gray-500 sm:text-right max-w-[230px]">
+            Joining is no longer available for this event.
+          </p>
+        </div>
       ) : (
         <button
           onClick={handleJoin}

@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import EventActionButtons from "@/components/EventActionButtons";
 import ConfirmedVolunteers from "@/components/ConfirmedVolunteers";
 import { API_BASE, DEFAULT_THUMBNAIL } from "@/lib/api";
+import { isEventExpired } from "@/lib/event-date";
 
 // ---------- Static shell (prerendered at build time) ----------
 
@@ -103,6 +104,7 @@ async function EventDetails({ paramsPromise }) {
     event.volunteers?.some((vol) => vol.email === currentUser.email);
 
   const volunteerCount = event.volunteers?.length || 0;
+  const expired = isEventExpired(event.date);
 
   const organizerImageUrl =
     event.organizerImage ||
@@ -158,13 +160,43 @@ async function EventDetails({ paramsPromise }) {
               </h3>
               <p className="text-xs text-gray-500">
                 {isJoined
-                  ? "You are confirmed for this initiative"
-                  : "Sign up to join hands for this drive"}
+                  ? expired
+                    ? "You volunteered for this completed initiative"
+                    : "You are confirmed for this initiative"
+                  : expired
+                    ? "This initiative has been completed"
+                    : "Sign up to join hands for this drive"}
               </p>
             </div>
           </div>
-          <EventActionButtons event={event} currentUser={currentUser} />
+          <EventActionButtons
+            event={event}
+            currentUser={currentUser}
+            isExpired={expired}
+          />
         </div>
+
+        {/* Expired-event notice */}
+        {expired && (
+          <div
+            role="status"
+            className="mb-8 flex items-start gap-3.5 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4"
+          >
+            <div className="w-10 h-10 shrink-0 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg">
+              ⏰
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-amber-900">
+                This event has already ended. Joining is no longer available.
+              </h3>
+              <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                The scheduled date has passed, so new volunteer sign-ups are
+                closed. You can still browse the event details and the
+                confirmed volunteer list below.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -57,6 +57,11 @@ const Navbar = () => {
               </Link>
             </li>
             <li>
+              <Link href="/about" className="rounded-xl">
+                About
+              </Link>
+            </li>
+            <li>
               <Link href="/events" className="rounded-xl">
                 Upcoming Events
               </Link>
@@ -109,7 +114,19 @@ const Navbar = () => {
       </div>
 
       {/* Navigation */}
-      <div className="navbar-center hidden md:block">
+      <div className="navbar-center hidden md:flex items-center gap-6">
+        <Link
+          href="/"
+          className="text-sm text-black font-semibold hover:text-green-700 transition-colors"
+        >
+          Home
+        </Link>
+        <Link
+          href="/about"
+          className="text-sm text-black font-semibold hover:text-green-700 transition-colors"
+        >
+          About
+        </Link>
         <Link
           href="/events"
           className="text-sm text-black font-semibold hover:text-green-700 transition-colors"
