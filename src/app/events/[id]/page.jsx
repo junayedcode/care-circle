@@ -1,11 +1,10 @@
 import React, { Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import EventImage from "@/components/EventImage";
+import { getServerSession } from "@/lib/server-session";
 import EventActionButtons from "@/components/EventActionButtons";
 import ConfirmedVolunteers from "@/components/ConfirmedVolunteers";
-import { API_BASE, DEFAULT_THUMBNAIL } from "@/lib/api";
+import { API_BASE } from "@/lib/api";
 import { isEventExpired } from "@/lib/event-date";
 
 // ---------- Static shell (prerendered at build time) ----------
@@ -95,8 +94,9 @@ async function EventDetails({ paramsPromise }) {
   }
 
   // Reading the session needs request data (cookies), which is only allowed
-  // to block inside a Suspense boundary.
-  const session = await auth.api.getSession({ headers: await headers() });
+  // to block inside a Suspense boundary. A failed lookup degrades to the
+  // signed-out view instead of crashing the page.
+  const session = await getServerSession();
   const currentUser = session?.user ?? null;
 
   const isJoined =
@@ -124,8 +124,8 @@ async function EventDetails({ paramsPromise }) {
     <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden pb-10">
       {/* Hero Banner */}
       <div className="relative h-[320px] md:h-[380px] w-full bg-gray-900">
-        <Image
-          src={event.thumbnail || DEFAULT_THUMBNAIL}
+        <EventImage
+          src={event.thumbnail}
           alt={event.title || "Event Image"}
           fill
           quality={90}

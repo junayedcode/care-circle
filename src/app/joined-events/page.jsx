@@ -1,9 +1,8 @@
 import React, { Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import { API_BASE, DEFAULT_THUMBNAIL } from "@/lib/api";
+import EventImage from "@/components/EventImage";
+import { getServerSession } from "@/lib/server-session";
+import { API_BASE } from "@/lib/api";
 
 // ---------- Static shell (prerendered at build time) ----------
 
@@ -59,8 +58,9 @@ function GridSkeleton() {
 
 async function JoinedEventsGrid() {
   // Reading the session needs request data (cookies), which is only allowed
-  // to block inside a Suspense boundary.
-  const session = await auth.api.getSession({ headers: await headers() });
+  // to block inside a Suspense boundary. A failed lookup degrades to the
+  // signed-out prompt instead of crashing the page.
+  const session = await getServerSession();
   const currentUserEmail = session?.user?.email;
 
   if (!currentUserEmail) {
@@ -150,8 +150,8 @@ async function JoinedEventsGrid() {
             <div>
               {/* Thumbnail Banner */}
               <div className="relative h-48 w-full bg-gray-900">
-                <Image
-                  src={event.thumbnail || DEFAULT_THUMBNAIL}
+                <EventImage
+                  src={event.thumbnail}
                   alt={event.title || "Event Image"}
                   fill
                   quality={90}
