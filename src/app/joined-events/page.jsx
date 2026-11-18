@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import Link from "next/link";
 import EventImage from "@/components/EventImage";
+import LocalizedEventText from "@/components/LocalizedEventText";
 import { getServerSession } from "@/lib/server-session";
 import { API_BASE } from "@/lib/api";
 
@@ -162,22 +163,35 @@ async function JoinedEventsGrid() {
 
                 {/* Category Badge */}
                 <span className="absolute top-4 left-4 bg-white/95 backdrop-blur-md text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
-                  {event.type || "Donation"}
+                  <LocalizedEventText
+                    value={event.type || "Donation"}
+                    bnValue={event.typeBn}
+                    field="type"
+                  />
                 </span>
 
                 {/* Date Badge */}
                 <div className="absolute bottom-3 left-4 text-white text-xs font-medium flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-lg">
-                  📅 {event.date}
+                  📅 <LocalizedEventText value={event.date} field="date" />
                 </div>
               </div>
 
               {/* Card Body */}
               <div className="p-5">
                 <h3 className="font-bold text-gray-900 text-base mb-1 line-clamp-1">
-                  {event.title}
+                  <LocalizedEventText
+                    value={event.title}
+                    bnValue={event.titleBn}
+                    field="title"
+                  />
                 </h3>
                 <p className="text-xs text-gray-500 flex items-center gap-1 mb-4">
-                  📍 {event.location}
+                  📍{" "}
+                  <LocalizedEventText
+                    value={event.location}
+                    bnValue={event.locationBn}
+                    field="location"
+                  />
                 </p>
 
                 <p className="text-xs text-emerald-700 bg-emerald-50/60 border border-emerald-100/60 p-2.5 rounded-xl font-medium mb-4">
@@ -190,7 +204,9 @@ async function JoinedEventsGrid() {
             {/* Card Footer */}
             <div className="px-5 pb-5 pt-0">
               <div className="flex items-center justify-between text-[11px] text-gray-400 mb-4 border-t border-gray-100 pt-3">
-                <span>Joined {joinedDateFormatted}</span>
+                <span>
+                  Joined <LocalizedEventText value={joinedDateFormatted} field="date" />
+                </span>
               </div>
 
               <Link

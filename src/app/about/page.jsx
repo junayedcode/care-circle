@@ -458,7 +458,7 @@ export default function AboutPage() {
                 key={item.step}
                 className="relative bg-[#f7faf7] rounded-[26px] border border-gray-100 p-6 hover:border-green-200 hover:shadow-md transition-all duration-300"
               >
-                <span className="absolute top-5 right-5 text-3xl font-extrabold text-green-100 select-none">
+                <span className="absolute top-5 right-5 text-3xl font-extrabold text-green-600 select-none">
                   {item.step}
                 </span>
                 <div className="relative w-11 h-11 rounded-xl bg-white text-green-700 border border-green-100 flex items-center justify-center shadow-sm">

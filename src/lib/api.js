@@ -4,5 +4,5 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-export const DEFAULT_THUMBNAIL =
-  "https://images.unsplash.com/photo-1532629345422-7515f3d16bb9?auto=format&fit=crop&w=1200&q=80";
+// Local fallback used when an event has no thumbnail or its URL fails to load.
+export const DEFAULT_THUMBNAIL = "/imege/hero-hands-plant.jpg";

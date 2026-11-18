@@ -1,16 +1,51 @@
 "use client";
 
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 import { toast } from "react-toastify/unstyled";
+import {
+  getStoredLanguage,
+  getStoredTheme,
+  setStoredLanguage,
+  setStoredTheme,
+} from "@/lib/navbarPreferences";
+import { applyDomTranslation } from "@/lib/translations";
+import { notifyLanguageChange } from "@/lib/languageContext";
 
 const Navbar = () => {
   const router = useRouter();
 
   const { data: session, isPending } = authClient.useSession();
+
+  // The inline script in the root layout applies stored preferences before
+  // paint. Re-apply here after hydration (and after dev StrictMode remounts).
+  // The translation observer handles text rendered by later navigation.
+  useLayoutEffect(() => {
+    const theme = getStoredTheme();
+    const language = getStoredLanguage();
+
+    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.setAttribute("lang", language);
+    applyDomTranslation(language);
+    notifyLanguageChange(language);
+  }, []);
+
+  const handleThemeToggle = () => {
+    const nextTheme = getStoredTheme() === "dark" ? "light" : "dark";
+    setStoredTheme(nextTheme);
+    document.documentElement.setAttribute("data-theme", nextTheme);
+  };
+
+  const handleLanguageToggle = () => {
+    const nextLanguage = getStoredLanguage() === "bn" ? "en" : "bn";
+    setStoredLanguage(nextLanguage);
+    document.documentElement.setAttribute("lang", nextLanguage);
+    applyDomTranslation(nextLanguage);
+    notifyLanguageChange(nextLanguage);
+  };
 
   const handleLogout = async () => {
     await authClient.signOut({
@@ -137,6 +172,58 @@ const Navbar = () => {
 
       {/* Right Side */}
       <div className="navbar-end gap-3">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={handleThemeToggle}
+            className="btn btn-ghost btn-sm px-2"
+            aria-label="Toggle theme"
+            title="Toggle theme"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.8}
+              stroke="currentColor"
+              className="w-4 h-4 hidden theme-icon-moon"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+              />
+            </svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.8}
+              stroke="currentColor"
+              className="w-4 h-4 hidden theme-icon-sun"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+              />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleLanguageToggle}
+            className="btn btn-ghost btn-sm px-2"
+            aria-label="Toggle language"
+            title="Toggle language"
+          >
+            <span className="hidden language-label-en">EN</span>
+            <span className="hidden language-label-bn">বাংলা</span>
+          </button>
+        </div>
+
         {isPending ? (
           <div className="flex items-center gap-2">
             <div className="w-16 h-8 bg-gray-200 animate-pulse rounded-full"></div>

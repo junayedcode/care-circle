@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import Link from "next/link";
 import EventImage from "@/components/EventImage";
+import LocalizedEventText from "@/components/LocalizedEventText";
 import { getServerSession } from "@/lib/server-session";
 import EventActionButtons from "@/components/EventActionButtons";
 import ConfirmedVolunteers from "@/components/ConfirmedVolunteers";
@@ -134,15 +135,33 @@ async function EventDetails({ paramsPromise }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
         <span className="absolute top-6 left-6 bg-white/95 backdrop-blur-md text-green-800 text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
-          🏷️ {event.type || "Donation"}
+          🏷️{" "}
+          <LocalizedEventText
+            value={event.type || "Donation"}
+            bnValue={event.typeBn}
+            field="type"
+          />
         </span>
         <div className="absolute bottom-6 left-6 right-6 md:left-10 text-white">
           <h1 className="text-2xl md:text-4xl font-extrabold mb-2.5 leading-tight">
-            {event.title}
+            <LocalizedEventText
+              value={event.title}
+              bnValue={event.titleBn}
+              field="title"
+            />
           </h1>
           <div className="flex flex-wrap items-center gap-5 text-xs md:text-sm text-gray-200">
-            <div className="flex items-center gap-1.5">📍 {event.location}</div>
-            <div className="flex items-center gap-1.5">📅 {event.date}</div>
+            <div className="flex items-center gap-1.5">
+              📍{" "}
+              <LocalizedEventText
+                value={event.location}
+                bnValue={event.locationBn}
+                field="location"
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              📅 <LocalizedEventText value={event.date} field="date" />
+            </div>
           </div>
         </div>
       </div>
@@ -207,7 +226,11 @@ async function EventDetails({ paramsPromise }) {
                 About this Social Initiative
               </h2>
               <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
-                {event.description}
+                <LocalizedEventText
+                  value={event.description}
+                  bnValue={event.descriptionBn}
+                  field="description"
+                />
               </p>
             </div>
 

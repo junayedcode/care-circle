@@ -1,2 +1,180 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+/* Navbar preference toggles: visibility follows the pre-paint attributes set on <html>. */
+.theme-icon-moon,
+.theme-icon-sun,
+.language-label-en,
+.language-label-bn {
+  display: none;
+}
+
+[data-theme="light"] .theme-icon-moon,
+[data-theme="dark"] .theme-icon-sun {
+  display: block;
+}
+
+[lang="en"] .language-label-en,
+[lang="bn"] .language-label-bn {
+  display: inline;
+}
+
+/* Minimal dark-theme corrections for hardcoded light utility classes. */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-gray-50,
+[data-theme="dark"] .bg-gray-100,
+[data-theme="dark"] .bg-\[\#f7faf7\] {
+  background-color: #1f2937;
+}
+
+/* The light-green brand sections use hardcoded hex utilities, so they stay
+   light unless overridden. Cover both the flat background and the gradient
+   variables emitted by Tailwind for the hero overlay. */
+[data-theme="dark"] .bg-\[\#edf5e7\] {
+  background-color: #14261d;
+}
+
+[data-theme="dark"] .from-\[\#edf5e7\] {
+  --tw-gradient-from: #14261d;
+}
+
+[data-theme="dark"] .via-\[\#edf5e7\]\/95 {
+  --tw-gradient-via: rgb(20 38 29 / 0.95);
+}
+
+[data-theme="dark"] .to-\[\#edf5e7\]\/20 {
+  --tw-gradient-to: rgb(20 38 29 / 0.2);
+}
+
+[data-theme="dark"] .bg-green-200\/40,
+[data-theme="dark"] .bg-emerald-100\/60 {
+  background-color: rgb(6 78 59 / 0.55);
+}
+
+[data-theme="dark"] .bg-green-50,
+[data-theme="dark"] .bg-green-100,
+[data-theme="dark"] .bg-emerald-50,
+[data-theme="dark"] .bg-emerald-50\/60,
+[data-theme="dark"] .bg-emerald-100 {
+  background-color: #064e3b;
+}
+
+[data-theme="dark"] .bg-amber-50,
+[data-theme="dark"] .bg-amber-100 {
+  background-color: #78350f;
+}
+
+[data-theme="dark"] .bg-white\/70,
+[data-theme="dark"] .bg-white\/80,
+[data-theme="dark"] .bg-white\/90,
+[data-theme="dark"] .bg-white\/95 {
+  background-color: rgb(31 41 55 / 0.85);
+}
+
+[data-theme="dark"] .bg-gray-200,
+[data-theme="dark"] .bg-gray-300,
+[data-theme="dark"] .bg-gray-400 {
+  background-color: #334155;
+}
+
+[data-theme="dark"] .text-black,
+[data-theme="dark"] .text-gray-700,
+[data-theme="dark"] .text-gray-800,
+[data-theme="dark"] .text-gray-900 {
+  color: #f3f4f6;
+}
+
+[data-theme="dark"] .text-gray-400,
+[data-theme="dark"] .text-gray-500,
+[data-theme="dark"] .text-gray-600 {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .text-green-600,
+[data-theme="dark"] .text-green-700,
+[data-theme="dark"] .text-green-800,
+[data-theme="dark"] .text-emerald-600,
+[data-theme="dark"] .text-emerald-700,
+[data-theme="dark"] .text-emerald-800,
+[data-theme="dark"] .hover\:text-green-700:hover,
+[data-theme="dark"] .hover\:text-green-800:hover,
+[data-theme="dark"] .hover\:text-emerald-900:hover {
+  color: #86efac;
+}
+
+[data-theme="dark"] .text-amber-700,
+[data-theme="dark"] .text-amber-800,
+[data-theme="dark"] .text-amber-900 {
+  color: #fcd34d;
+}
+
+/* Dark green brand headings must flip to light wherever their surface is now
+   dark — including the hero/about sections whose light-green backdrop was
+   darkened above. */
+[data-theme="dark"] .bg-white .text-\[\#123c2c\],
+[data-theme="dark"] .bg-\[\#f7faf7\] .text-\[\#123c2c\],
+[data-theme="dark"] .bg-\[\#edf5e7\] .text-\[\#123c2c\] {
+  color: #f3f4f6;
+}
+
+/* Light mode: secondary text on the pale-green surfaces needs a darker,
+   green-tinted gray instead of the very light gray utilities. */
+[data-theme="light"] .bg-\[\#edf5e7\] .text-gray-400,
+[data-theme="light"] .bg-\[\#edf5e7\] .text-gray-500,
+[data-theme="light"] .bg-\[\#edf5e7\] .text-gray-600,
+[data-theme="light"] .bg-\[\#f7faf7\] .text-gray-400,
+[data-theme="light"] .bg-\[\#f7faf7\] .text-gray-500,
+[data-theme="light"] .bg-\[\#f7faf7\] .text-gray-600 {
+  color: #3d5a49;
+}
+
+[data-theme="dark"] .border-gray-100,
+[data-theme="dark"] .border-gray-200,
+[data-theme="dark"] .border-green-100,
+[data-theme="dark"] .border-green-200 {
+  border-color: #334155;
+}
+
+[data-theme="dark"] .border-emerald-100,
+[data-theme="dark"] .border-emerald-100\/60,
+[data-theme="dark"] .border-emerald-200 {
+  border-color: #065f46;
+}
+
+[data-theme="dark"] .border-amber-200 {
+  border-color: #92400e;
+}
+
+[data-theme="dark"] .border-green-700,
+[data-theme="dark"] .border-red-200 {
+  border-color: #166534;
+}
+
+[data-theme="dark"] .bg-red-50 {
+  background-color: #450a0a;
+}
+
+[data-theme="dark"] .text-red-600 {
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .hover\:bg-gray-50:hover,
+[data-theme="dark"] .hover\:bg-gray-100:hover {
+  background-color: #334155;
+}
+
+[data-theme="dark"] .hover\:bg-green-50:hover {
+  background-color: #064e3b;
+}
+
+[data-theme="dark"] .hover\:bg-emerald-100:hover {
+  background-color: #065f46;
+}
+
+[data-theme="dark"] .hover\:bg-gray-400:hover {
+  background-color: #475569;
+}
