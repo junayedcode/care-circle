@@ -2,38 +2,40 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { DEFAULT_THUMBNAIL } from "@/lib/api";
+import { DEFAULT_THUMBNAIL, getEventImageUrl } from "@/lib/api";
 import { useLanguage } from "@/lib/languageContext";
-import { translateEventText } from "@/lib/eventLanguage";
+import { getLocalizedEventValue } from "@/lib/eventLanguage";
 
-function safeSrc(value) {
-  return typeof value === "string" && value.trim()
-    ? value
-    : DEFAULT_THUMBNAIL;
-}
-
-// Client wrapper around next/image so a broken event thumbnail can fall back
-// to the local default without changing the card markup or dimensions.
-export default function EventImage({ src, alt, ...props }) {
-  const [currentSrc, setCurrentSrc] = useState(() => safeSrc(src));
+// Shared event thumbnail renderer. A valid submitted URL is displayed exactly
+// as saved; only missing/invalid/failed images use the one fixed default.
+export default function EventImage({ src, alt, event, ...props }) {
   const language = useLanguage();
+  const [currentSrc, setCurrentSrc] = useState(() => getEventImageUrl(src));
 
   useEffect(() => {
-    setCurrentSrc(safeSrc(src));
+    setCurrentSrc(getEventImageUrl(src));
   }, [src]);
+
+  const localizedAlt = event
+    ? getLocalizedEventValue(event, "title", language) || alt || ""
+    : alt || "";
 
   return (
     <>
-      {/* Paints the fallback immediately, even if the <img> error fires before hydration. */}
-      <span
-        aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${DEFAULT_THUMBNAIL})` }}
-      />
+      {/* Painted only while the fixed default is actually being displayed. */}
+      {currentSrc === DEFAULT_THUMBNAIL && (
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${DEFAULT_THUMBNAIL})` }}
+        />
+      )}
+
       <Image
         {...props}
         src={currentSrc}
-        alt={language === "bn" ? translateEventText(alt || "") : alt}
+        alt={localizedAlt}
+        unoptimized
         onError={() => {
           if (currentSrc !== DEFAULT_THUMBNAIL) {
             setCurrentSrc(DEFAULT_THUMBNAIL);

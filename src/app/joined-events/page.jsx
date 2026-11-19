@@ -153,6 +153,7 @@ async function JoinedEventsGrid() {
               <div className="relative h-48 w-full bg-gray-900">
                 <EventImage
                   src={event.thumbnail}
+                  event={event}
                   alt={event.title || "Event Image"}
                   fill
                   quality={90}
@@ -162,7 +163,7 @@ async function JoinedEventsGrid() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
 
                 {/* Category Badge */}
-                <span className="absolute top-4 left-4 bg-white/95 backdrop-blur-md text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
+                <span className="absolute top-4 left-4 right-4 sm:right-auto max-w-[calc(100%-2rem)] truncate bg-white/95 backdrop-blur-md text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
                   <LocalizedEventText
                     value={event.type || "Donation"}
                     bnValue={event.typeBn}
@@ -185,13 +186,15 @@ async function JoinedEventsGrid() {
                     field="title"
                   />
                 </h3>
-                <p className="text-xs text-gray-500 flex items-center gap-1 mb-4">
+                <p className="text-xs text-gray-500 flex items-center gap-1 mb-4 min-w-0">
                   📍{" "}
-                  <LocalizedEventText
-                    value={event.location}
-                    bnValue={event.locationBn}
-                    field="location"
-                  />
+                  <span className="truncate">
+                    <LocalizedEventText
+                      value={event.location}
+                      bnValue={event.locationBn}
+                      field="location"
+                    />
+                  </span>
                 </p>
 
                 <p className="text-xs text-emerald-700 bg-emerald-50/60 border border-emerald-100/60 p-2.5 rounded-xl font-medium mb-4">

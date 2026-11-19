@@ -124,9 +124,10 @@ async function EventDetails({ paramsPromise }) {
   return (
     <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden pb-10">
       {/* Hero Banner */}
-      <div className="relative h-[320px] md:h-[380px] w-full bg-gray-900">
+      <div className="relative h-[280px] sm:h-[320px] md:h-[380px] w-full bg-gray-900">
         <EventImage
           src={event.thumbnail}
+          event={event}
           alt={event.title || "Event Image"}
           fill
           quality={90}
@@ -134,7 +135,7 @@ async function EventDetails({ paramsPromise }) {
           className="object-cover opacity-85"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
-        <span className="absolute top-6 left-6 bg-white/95 backdrop-blur-md text-green-800 text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+        <span className="absolute top-6 left-6 right-6 sm:right-auto max-w-[calc(100%-3rem)] truncate bg-white/95 backdrop-blur-md text-green-800 text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
           🏷️{" "}
           <LocalizedEventText
             value={event.type || "Donation"}
@@ -143,24 +144,29 @@ async function EventDetails({ paramsPromise }) {
           />
         </span>
         <div className="absolute bottom-6 left-6 right-6 md:left-10 text-white">
-          <h1 className="text-2xl md:text-4xl font-extrabold mb-2.5 leading-tight">
+          <h1 className="text-xl sm:text-2xl md:text-4xl font-extrabold mb-2.5 leading-tight break-words">
             <LocalizedEventText
               value={event.title}
               bnValue={event.titleBn}
               field="title"
             />
           </h1>
-          <div className="flex flex-wrap items-center gap-5 text-xs md:text-sm text-gray-200">
-            <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs md:text-sm text-gray-200 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0 max-w-full">
               📍{" "}
-              <LocalizedEventText
-                value={event.location}
-                bnValue={event.locationBn}
-                field="location"
-              />
+              <span className="truncate">
+                <LocalizedEventText
+                  value={event.location}
+                  bnValue={event.locationBn}
+                  field="location"
+                />
+              </span>
             </div>
-            <div className="flex items-center gap-1.5">
-              📅 <LocalizedEventText value={event.date} field="date" />
+            <div className="flex items-center gap-1.5 min-w-0 max-w-full">
+              📅{" "}
+              <span className="truncate">
+                <LocalizedEventText value={event.date} field="date" />
+              </span>
             </div>
           </div>
         </div>
@@ -169,15 +175,15 @@ async function EventDetails({ paramsPromise }) {
       <div className="px-6 md:px-10 pt-8">
         {/* Action Bar */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-700 font-bold text-xl">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 h-12 shrink-0 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-700 font-bold text-xl">
               👥
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 text-sm md:text-base">
+              <h3 className="font-bold text-gray-900 text-sm md:text-base break-words">
                 {volunteerCount} {volunteerCount === 1 ? "Volunteer" : "Volunteers"} Joined
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 break-words">
                 {isJoined
                   ? expired
                     ? "You volunteered for this completed initiative"
@@ -225,7 +231,7 @@ async function EventDetails({ paramsPromise }) {
               <h2 className="text-lg font-bold text-[#123c2c] mb-3">
                 About this Social Initiative
               </h2>
-              <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
+              <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line break-words">
                 <LocalizedEventText
                   value={event.description}
                   bnValue={event.descriptionBn}

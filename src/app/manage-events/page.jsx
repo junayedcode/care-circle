@@ -124,6 +124,7 @@ const ManageMyEventsPage = () => {
                   <div className="relative h-48 w-full bg-gray-900">
                     <EventImage
                       src={event.thumbnail}
+                      event={event}
                       alt={event.title || "Event Image"}
                       fill
                       quality={90}
@@ -133,7 +134,7 @@ const ManageMyEventsPage = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
 
                     {/* Category Badge */}
-                    <span className="absolute top-4 left-4 bg-white/95 backdrop-blur-md text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
+                    <span className="absolute top-4 left-4 right-4 sm:right-auto max-w-[calc(100%-2rem)] truncate bg-white/95 backdrop-blur-md text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
                       <LocalizedEventText
                         value={event.type || "Community Drive"}
                         bnValue={event.typeBn}
@@ -156,13 +157,15 @@ const ManageMyEventsPage = () => {
                         field="title"
                       />
                     </h3>
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mb-3">
+                    <p className="text-xs text-gray-500 flex items-center gap-1 mb-3 min-w-0">
                       📍{" "}
-                      <LocalizedEventText
-                        value={event.location}
-                        bnValue={event.locationBn}
-                        field="location"
-                      />
+                      <span className="truncate">
+                        <LocalizedEventText
+                          value={event.location}
+                          bnValue={event.locationBn}
+                          field="location"
+                        />
+                      </span>
                     </p>
                     <p className="text-xs text-gray-600 line-clamp-2 mb-4">
                       <LocalizedEventText
@@ -177,11 +180,11 @@ const ManageMyEventsPage = () => {
                 {/* Card Footer & Action Buttons */}
                 <div className="px-5 pb-5 pt-0">
                   <div className="flex items-center gap-2 border-t border-gray-100 pt-4 text-xs mb-3">
-                    <span className="text-gray-400">👤 {event.organizerName || "Organizer"}</span>
+                    <span className="text-gray-400 truncate">👤 {event.organizerName || "Organizer"}</span>
                   </div>
 
                   {/* View, Edit, Delete Buttons Grid */}
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-2 min-w-0">
                     <Link
                       href={`/events/${event._id}`}
                       className="bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-2.5 rounded-xl transition text-center text-xs border border-gray-200 flex items-center justify-center"

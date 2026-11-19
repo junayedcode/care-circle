@@ -2,20 +2,35 @@
 
 import React, { useState } from "react";
 import { toast } from "react-toastify/unstyled";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, normalizeThumbnailUrl } from "@/lib/api";
 import { authFetch } from "@/lib/auth-fetch";
+import {
+  containsBengaliScript,
+  containsLatinLetters,
+} from "@/lib/eventLanguage";
+
+const initialFormData = {
+  title: "",
+  titleBn: "",
+  type: "",
+  typeBn: "",
+  date: "",
+  location: "",
+  locationBn: "",
+  thumbnail: "",
+  description: "",
+  descriptionBn: "",
+};
+
+const inputClass =
+  "w-full min-w-0 max-w-full text-xs border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500";
+
+const labelClass = "block text-xs font-semibold text-gray-700 mb-1";
 
 export default function EditEventButton({ eventId, onUpdateSuccess }) {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    type: "",
-    date: "",
-    location: "",
-    thumbnail: "",
-    description: "",
-  });
+  const [formData, setFormData] = useState(initialFormData);
 
   const handleOpenModal = async () => {
     setIsOpen(true);
@@ -26,13 +41,35 @@ export default function EditEventButton({ eventId, onUpdateSuccess }) {
       });
       if (res.ok) {
         const data = await res.json();
+
+        // Legacy records stored Bengali text in the English fields. Move that
+        // real content into the Bengali fields so nothing is lost and English
+        // mode no longer shows Bengali text as English.
+        const migrate = (canonical, localized) => {
+          const english = data[canonical] || "";
+          const bengali = data[localized] || "";
+          if (!bengali && containsBengaliScript(english)) {
+            return { english: "", bengali: english };
+          }
+          return { english, bengali };
+        };
+
+        const title = migrate("title", "titleBn");
+        const description = migrate("description", "descriptionBn");
+        const location = migrate("location", "locationBn");
+        const type = migrate("type", "typeBn");
+
         setFormData({
-          title: data.title || "",
-          type: data.type || "",
+          title: title.english,
+          titleBn: title.bengali,
+          description: description.english,
+          descriptionBn: description.bengali,
+          location: location.english,
+          locationBn: location.bengali,
+          type: type.english || "Donation",
+          typeBn: type.bengali || "দান",
           date: data.date || "",
-          location: data.location || "",
           thumbnail: data.thumbnail || "",
-          description: data.description || "",
         });
       }
     } catch (error) {
@@ -41,27 +78,80 @@ export default function EditEventButton({ eventId, onUpdateSuccess }) {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const validate = () => {
+    const pairs = [
+      ["title", "titleBn", "Title"],
+      ["description", "descriptionBn", "Description"],
+      ["location", "locationBn", "Location"],
+    ];
+
+    for (const [enField, bnField, label] of pairs) {
+      if (!formData[enField]?.trim() || !formData[bnField]?.trim()) {
+        toast.error(`${label} is required in both English and Bengali.`);
+        return false;
+      }
+      if (containsBengaliScript(formData[enField])) {
+        toast.error(
+          "English fields must contain English text. Use the Bengali fields for Bengali content."
+        );
+        return false;
+      }
+      if (!containsBengaliScript(formData[bnField])) {
+        toast.error(
+          "Bengali fields must contain Bengali text. Use the English fields for English content."
+        );
+        return false;
+      }
+    }
+
+    if (formData.type && containsBengaliScript(formData.type)) {
+      toast.error(
+        "English fields must contain English text. Use the Bengali fields for Bengali content."
+      );
+      return false;
+    }
+    if (formData.typeBn && containsLatinLetters(formData.typeBn)) {
+      toast.error(
+        "Bengali fields must contain Bengali text. Use the English fields for English content."
+      );
+      return false;
+    }
+
+    if (formData.thumbnail?.trim() && !normalizeThumbnailUrl(formData.thumbnail)) {
+      toast.error("Please enter a valid image URL.");
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setLoading(true);
     try {
+      const payload = {
+        ...formData,
+        thumbnail: normalizeThumbnailUrl(formData.thumbnail),
+      };
       const res = await authFetch(`${API_BASE}/event/${eventId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         setIsOpen(false);
         toast.success("Event updated successfully!");
-        
+
         if (onUpdateSuccess) {
-          onUpdateSuccess(eventId, formData);
+          onUpdateSuccess(eventId, payload);
         }
       } else {
         let message = "Failed to update event";
@@ -84,15 +174,14 @@ export default function EditEventButton({ eventId, onUpdateSuccess }) {
     <>
       <button
         onClick={handleOpenModal}
-        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold py-2.5 rounded-xl transition text-center text-xs border border-emerald-200 flex items-center justify-center"
+        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold py-2.5 rounded-xl transition text-center text-xs border border-emerald-200 flex items-center justify-center w-full"
       >
         Edit
       </button>
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl relative animate-fadeIn max-h-[90vh] overflow-y-auto">
-            
+          <div className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-xl relative animate-fadeIn max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsOpen(false)}
               className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 text-lg font-bold"
@@ -100,79 +189,146 @@ export default function EditEventButton({ eventId, onUpdateSuccess }) {
               ✕
             </button>
 
-            <h2 className="text-xl font-extrabold text-gray-900 mb-1">Update Event</h2>
-            <p className="text-xs text-gray-500 mb-6">Modify the details for your social service initiative.</p>
+            <h2 className="text-xl font-extrabold text-gray-900 mb-1">
+              Update Event
+            </h2>
+            <p className="text-xs text-gray-500 mb-6 break-words">
+              Modify the English and Bengali details for your social service
+              initiative.
+            </p>
 
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Title</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  required
-                  className="w-full text-xs border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500"
-                />
-              </div>
+              {/* English content */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-extrabold text-green-800 border-b border-green-100 pb-1">
+                  English Content
+                </h3>
 
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Event Type</label>
+                  <label className={labelClass}>Title (English)</label>
                   <input
                     type="text"
-                    name="type"
-                    value={formData.type}
+                    name="title"
+                    value={formData.title}
                     onChange={handleChange}
-                    className="w-full text-xs border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500"
+                    required
+                    className={inputClass}
                   />
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Event Type (English)</label>
+                    <input
+                      type="text"
+                      name="type"
+                      value={formData.type}
+                      onChange={handleChange}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Event Date</label>
+                    <input
+                      type="text"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      placeholder="YYYY-MM-DD"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Event Date</label>
+                  <label className={labelClass}>Location (English)</label>
                   <input
                     type="text"
-                    name="date"
-                    value={formData.date}
+                    name="location"
+                    value={formData.location}
                     onChange={handleChange}
-                    className="w-full text-xs border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500"
+                    className={inputClass}
                   />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Description (English)</label>
+                  <textarea
+                    name="description"
+                    rows="3"
+                    value={formData.description}
+                    onChange={handleChange}
+                    className={`${inputClass} resize-none`}
+                  ></textarea>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Location</label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  className="w-full text-xs border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500"
-                />
+              {/* Bengali content */}
+              <div className="space-y-4 pt-2">
+                <h3 className="text-xs font-extrabold text-green-800 border-b border-green-100 pb-1">
+                  বাংলা বিষয়বস্তু (Bengali Content)
+                </h3>
+
+                <div>
+                  <label className={labelClass}>শিরোনাম (বাংলা)</label>
+                  <input
+                    type="text"
+                    name="titleBn"
+                    value={formData.titleBn}
+                    onChange={handleChange}
+                    required
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>ধরণ (বাংলা)</label>
+                  <input
+                    type="text"
+                    name="typeBn"
+                    value={formData.typeBn}
+                    onChange={handleChange}
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>অবস্থান (বাংলা)</label>
+                  <input
+                    type="text"
+                    name="locationBn"
+                    value={formData.locationBn}
+                    onChange={handleChange}
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>বিবরণ (বাংলা)</label>
+                  <textarea
+                    name="descriptionBn"
+                    rows="3"
+                    value={formData.descriptionBn}
+                    onChange={handleChange}
+                    className={`${inputClass} resize-none`}
+                  ></textarea>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Thumbnail Image URL</label>
+              {/* Shared image */}
+              <div className="pt-2">
+                <label className={labelClass}>Thumbnail Image URL</label>
                 <input
-                  type="text"
+                  type="url"
                   name="thumbnail"
                   value={formData.thumbnail}
                   onChange={handleChange}
-                  className="w-full text-xs border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500"
+                  placeholder="https://example.com/image.jpg"
+                  className={inputClass}
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
-                <textarea
-                  name="description"
-                  rows="3"
-                  value={formData.description}
-                  onChange={handleChange}
-                  className="w-full text-xs border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500"
-                ></textarea>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
@@ -189,7 +345,6 @@ export default function EditEventButton({ eventId, onUpdateSuccess }) {
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       )}

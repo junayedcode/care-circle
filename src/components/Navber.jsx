@@ -60,9 +60,9 @@ const Navbar = () => {
   };
 
   return (
-    <div className="navbar bg-base-100 shadow-sm sticky top-0 z-50 px-4 md:px-8 lg:px-12">
+    <div className="navbar bg-base-100 shadow-sm sticky top-0 z-50 px-4 md:px-8 lg:px-12 justify-between gap-2">
       {/* Logo + Mobile Menu */}
-      <div className="navbar-start gap-1">
+      <div className="navbar-start !w-auto min-w-0 flex-1 gap-1">
         {/* Mobile Navigation Dropdown */}
         <div className="dropdown md:hidden">
           <div
@@ -84,7 +84,7 @@ const Navbar = () => {
           </div>
           <ul
             tabIndex={0}
-            className="menu menu-sm dropdown-content bg-white rounded-2xl z-[2] mt-2 w-52 p-2 shadow-2xl border border-gray-100"
+            className="menu menu-sm dropdown-content bg-white rounded-2xl z-[2] mt-2 w-52 max-w-[calc(100vw-2rem)] p-2 shadow-2xl border border-gray-100"
           >
             <li>
               <Link href="/" className="rounded-xl">
@@ -116,15 +116,38 @@ const Navbar = () => {
                 Joined Events
               </Link>
             </li>
+            {session ? (
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-xl text-red-600"
+                >
+                  Logout
+                </button>
+              </li>
+            ) : (
+              <>
+                <li>
+                  <Link href="/login" className="rounded-xl">
+                    Login
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/signup" className="rounded-xl">
+                    Sign Up
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
 
-        <Link href="/" className="flex items-center gap-1">
+        <Link href="/" className="flex items-center gap-1 min-w-0">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 40 40"
             fill="none"
-            className="w-9 h-9"
+            className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
           >
             <path
               d="M20 35C15 30 4 23 4 14C4 7 13 4 20 12C27 4 36 7 36 14C36 23 25 30 20 35Z"
@@ -141,7 +164,7 @@ const Navbar = () => {
             <circle cx="20" cy="12" r="3" fill="#16a34a" />
           </svg>
 
-          <span className="text-xl font-extrabold tracking-tight">
+          <span className="text-base sm:text-lg md:text-xl font-extrabold tracking-tight min-w-0 truncate">
             <span className="text-green-800">Care</span>
             <span className="text-green-600">Circle</span>
           </span>
@@ -171,7 +194,7 @@ const Navbar = () => {
       </div>
 
       {/* Right Side */}
-      <div className="navbar-end gap-3">
+      <div className="navbar-end !w-auto min-w-0 flex-1 flex-wrap justify-end gap-2 md:gap-3">
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -219,6 +242,21 @@ const Navbar = () => {
             aria-label="Toggle language"
             title="Toggle language"
           >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.8}
+              stroke="currentColor"
+              className="w-4 h-4 language-compact-icon"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path
+                strokeLinecap="round"
+                d="M3 12h18M12 3c2.5 2.5 3.8 5.6 3.8 9S14.5 18.5 12 21c-2.5-2.5-3.8-5.6-3.8-9S9.5 5.5 12 3z"
+              />
+            </svg>
             <span className="hidden language-label-en">EN</span>
             <span className="hidden language-label-bn">বাংলা</span>
           </button>
@@ -275,7 +313,7 @@ const Navbar = () => {
               {/* Dropdown Menu */}
               <ul
                 tabIndex={0}
-                className="menu menu-sm dropdown-content bg-white rounded-2xl z-[1] mt-3 w-64 p-3 shadow-2xl border border-gray-100"
+                className="menu menu-sm dropdown-content bg-white rounded-2xl z-[1] mt-3 w-64 max-w-[calc(100vw-2rem)] p-3 shadow-2xl border border-gray-100"
               >
                 {/* User Info Header */}
                 <li className="px-3 py-2.5 border-b border-gray-100 mb-1.5 pointer-events-none">
@@ -338,7 +376,7 @@ const Navbar = () => {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 px-3.5 py-1.5 rounded-full font-semibold text-xs transition duration-300 cursor-pointer shadow-sm"
+              className="!hidden sm:!flex items-center gap-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 px-3.5 py-1.5 rounded-full font-semibold text-xs transition duration-300 cursor-pointer shadow-sm"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -361,14 +399,14 @@ const Navbar = () => {
           <>
             <Link
               href="/login"
-              className="btn btn-sm rounded-full bg-white text-green-700 border border-green-700 hover:bg-green-50 px-4"
+              className="!hidden sm:!inline-flex btn btn-sm rounded-full bg-white text-green-700 border border-green-700 hover:bg-green-50 px-4"
             >
               Login
             </Link>
 
             <Link
               href="/signup"
-              className="btn btn-sm rounded-full bg-green-700 hover:bg-green-800 text-white border-none px-4"
+              className="!hidden sm:!inline-flex btn btn-sm rounded-full bg-green-700 hover:bg-green-800 text-white border-none px-4"
             >
               Sign Up
             </Link>

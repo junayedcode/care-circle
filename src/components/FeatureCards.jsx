@@ -66,7 +66,7 @@ const FeatureCards = () => {
   return (
     <section id="about">
       <div className="bg-[#edf5e7]  shadow-sm p-6 md:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature) => (
             <div
               key={feature.title}
@@ -76,9 +76,11 @@ const FeatureCards = () => {
                 {feature.icon}
               </div>
 
-              <div>
-                <h3 className="font-bold text-[#123c2c]">{feature.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm sm:text-base text-[#123c2c] break-words">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1 break-words">
                   {feature.description}
                 </p>
               </div>

@@ -107,7 +107,7 @@ const AllEvents = () => {
         {/* Filter Categories & Search Bar */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
           {/* Dynamic Categories */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none ">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none max-w-full min-w-0">
             {categories.map((cat) => (
               <button
                 key={cat}

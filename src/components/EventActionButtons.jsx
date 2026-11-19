@@ -92,7 +92,7 @@ const EventActionButtons = ({ event, currentUser, isExpired }) => {
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0">
       {/* Share Button */}
       <button
         onClick={handleShare}
@@ -110,17 +110,20 @@ const EventActionButtons = ({ event, currentUser, isExpired }) => {
 
       {/* Organizer / Joined / Unjoined Buttons */}
       {isCreator ? (
-        <div className="bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold px-4 py-3 rounded-xl">
+        <div className="bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold px-4 py-3 rounded-xl break-words">
           ⚠️ You are the organizer
         </div>
       ) : isJoined ? (
         <button
           onClick={handleLeave}
           disabled={loading}
-          className="bg-emerald-600 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl transition duration-300 shadow-sm text-sm flex items-center gap-2 disabled:opacity-50"
+          className="bg-emerald-600 hover:bg-red-600 text-white font-semibold px-4 sm:px-6 py-3 rounded-xl transition duration-300 shadow-sm text-sm flex items-center gap-2 disabled:opacity-50"
         >
           <span>✓</span>
-          <span>{loading ? "Processing..." : "Joined (Click to Leave)"}</span>
+          <span>
+            {loading ? "Processing..." : "Joined"}
+            <span className="hidden sm:inline"> (Click to Leave)</span>
+          </span>
         </button>
       ) : expired ? (
         <div className="flex flex-col items-start sm:items-end gap-1.5">
@@ -128,11 +131,11 @@ const EventActionButtons = ({ event, currentUser, isExpired }) => {
             type="button"
             disabled
             aria-disabled="true"
-            className="bg-gray-200 text-gray-500 font-semibold px-6 py-3 rounded-xl text-sm cursor-not-allowed"
+            className="bg-gray-200 text-gray-500 font-semibold px-4 sm:px-6 py-3 rounded-xl text-sm cursor-not-allowed"
           >
             Event Ended
           </button>
-          <p className="text-[11px] text-gray-500 sm:text-right max-w-[230px]">
+          <p className="text-[11px] text-gray-500 sm:text-right max-w-full sm:max-w-[230px] break-words">
             Joining is no longer available for this event.
           </p>
         </div>

@@ -260,20 +260,20 @@ export default function AboutPage() {
       <section className="relative overflow-hidden bg-[#edf5e7]">
         <div
           aria-hidden="true"
-          className="absolute -top-24 -right-16 w-80 h-80 rounded-full bg-green-200/40 blur-3xl"
+          className="absolute -top-24 -right-16 w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-green-200/40 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="absolute -bottom-28 -left-20 w-96 h-96 rounded-full bg-emerald-100/60 blur-3xl"
+          className="absolute -bottom-28 -left-20 w-72 h-72 sm:w-96 sm:h-96 rounded-full bg-emerald-100/60 blur-3xl"
         />
 
         <div className="relative max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center">
           <div>
-            <p className="inline-flex items-center gap-2 text-green-800 bg-white/80 border border-green-200 rounded-full px-4 py-2 text-xs md:text-sm font-semibold mb-6 shadow-sm">
+            <p className="inline-block max-w-full text-green-800 bg-white/80 border border-green-200 rounded-full px-4 py-2 text-xs md:text-sm font-semibold mb-6 shadow-sm break-words">
               💚 About CareCircle
             </p>
 
-            <h1 className="text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold text-[#123c2c] leading-[1.12] tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold text-[#123c2c] leading-[1.12] tracking-tight break-words">
               Turning shared kindness into{" "}
               <span className="text-green-700">lasting community change.</span>
             </h1>
@@ -288,13 +288,13 @@ export default function AboutPage() {
             <div className="flex flex-wrap gap-4 mt-8">
               <Link
                 href="/events"
-                className="btn bg-green-800 hover:bg-green-900 text-white border-none rounded-full px-8 h-12 min-h-12 shadow-md hover:shadow-lg transition-all duration-300"
+                className="btn bg-green-800 hover:bg-green-900 text-white border-none rounded-full px-6 sm:px-8 h-12 min-h-12 shadow-md hover:shadow-lg transition-all duration-300 max-w-full"
               >
                 Explore Events →
               </Link>
               <Link
                 href="/signup"
-                className="btn bg-white/80 border border-green-700 text-green-800 hover:bg-green-800 hover:text-white rounded-full px-8 h-12 min-h-12 transition-all duration-300"
+                className="btn bg-white/80 border border-green-700 text-green-800 hover:bg-green-800 hover:text-white rounded-full px-6 sm:px-8 h-12 min-h-12 transition-all duration-300 max-w-full"
               >
                 Become a Volunteer
               </Link>
@@ -389,11 +389,11 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {missionVision.map((item) => (
               <article
                 key={item.label}
-                className="group bg-white rounded-[28px] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-7 flex flex-col"
+                className="group bg-white rounded-[28px] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-6 sm:p-7 flex flex-col min-w-0"
               >
                 <div
                   className={`w-12 h-12 rounded-2xl flex items-center justify-center ${item.iconClass}`}
@@ -432,7 +432,7 @@ export default function AboutPage() {
       <section className="bg-white border-y border-gray-100 px-6 md:px-12 lg:px-20 py-16 md:py-20">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
-            <div className="max-w-2xl">
+            <div className="max-w-2xl min-w-0">
               <div className="inline-block text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wider bg-green-50 text-green-700">
                 How It Works
               </div>
@@ -446,7 +446,7 @@ export default function AboutPage() {
             </div>
             <Link
               href="/events"
-              className="text-sm font-semibold text-green-700 hover:text-green-800 whitespace-nowrap"
+              className="text-sm font-semibold text-green-700 hover:text-green-800 md:whitespace-nowrap"
             >
               Browse Initiatives →
             </Link>
@@ -458,7 +458,7 @@ export default function AboutPage() {
                 key={item.step}
                 className="relative bg-[#f7faf7] rounded-[26px] border border-gray-100 p-6 hover:border-green-200 hover:shadow-md transition-all duration-300"
               >
-                <span className="absolute top-5 right-5 text-3xl font-extrabold text-green-600 select-none">
+                <span className="absolute top-5 right-5 text-2xl sm:text-3xl font-extrabold text-green-600 select-none">
                   {item.step}
                 </span>
                 <div className="relative w-11 h-11 rounded-xl bg-white text-green-700 border border-green-100 flex items-center justify-center shadow-sm">
@@ -492,11 +492,11 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {audiences.map((item) => (
               <article
                 key={item.label}
-                className="bg-white rounded-[26px] border border-green-100 shadow-sm p-7 hover:shadow-lg transition-all duration-300"
+                className="bg-white rounded-[26px] border border-green-100 shadow-sm p-6 sm:p-7 hover:shadow-lg transition-all duration-300 min-w-0"
               >
                 <div className="w-11 h-11 rounded-xl bg-green-50 text-green-700 flex items-center justify-center">
                   {item.icon}

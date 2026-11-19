@@ -178,3 +178,51 @@
 [data-theme="dark"] .hover\:bg-gray-400:hover {
   background-color: #475569;
 }
+
+/* ============================================================
+   Mobile safety net
+   Prevent any single wide element from creating page-wide
+   horizontal scrolling. `clip` is used instead of `hidden` so
+   the sticky navbar keeps working.
+   ============================================================ */
+html,
+body {
+  overflow-x: clip;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+/* Long unbroken text (URLs, titles) must wrap inside its container. */
+p,
+h1,
+h2,
+h3,
+span,
+li {
+  overflow-wrap: anywhere;
+}
+
+/* On narrow screens the language toggle shows a compact globe icon instead of
+   the longer EN / বাংলা labels, which otherwise overflow the navbar. */
+.language-compact-icon {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .language-compact-icon {
+    display: block;
+  }
+
+  [lang="en"] .language-label-en,
+  [lang="bn"] .language-label-bn {
+    display: none;
+  }
+}
+
+/* Toast messages must never be wider than the viewport. */
+:root {
+  --toastify-toast-width: min(320px, calc(100vw - 2rem));
+}

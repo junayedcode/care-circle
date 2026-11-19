@@ -23,17 +23,17 @@ const Heropage = () => {
 
             <div className="max-w-xl">
 
-              <p className="inline-flex items-center gap-2 text-green-800 bg-white/70 border border-green-200 rounded-full px-4 py-2 text-sm font-semibold mb-6 shadow-sm">
+              <p className="inline-block max-w-full text-green-800 bg-white/70 border border-green-200 rounded-full px-4 py-2 text-xs sm:text-sm font-semibold mb-6 shadow-sm break-words">
                 💚 Together for a Better Community
               </p>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#123c2c] leading-[1.15] tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#123c2c] leading-[1.15] tracking-tight break-words">
                 Together We
                 <br />
                 Make a <span className="text-green-700">Difference</span>
               </h1>
 
-              <p className="text-gray-600 text-base md:text-lg mt-6 leading-8 max-w-md">
+              <p className="text-gray-600 text-sm sm:text-base md:text-lg mt-6 leading-7 sm:leading-8 max-w-md break-words">
                 Join community events, volunteer for good causes,
                 and help build a better society.
               </p>
@@ -42,14 +42,14 @@ const Heropage = () => {
 
                 <Link
                   href="/events"
-                  className="btn bg-green-800 hover:bg-green-900 text-white border-none rounded-full px-8 h-12 min-h-12 shadow-md hover:shadow-lg transition-all duration-300"
+                  className="btn bg-green-800 hover:bg-green-900 text-white border-none rounded-full px-6 sm:px-8 h-12 min-h-12 shadow-md hover:shadow-lg transition-all duration-300 max-w-full"
                 >
                   Explore Events →
                 </Link>
 
                 <Link
                   href="/about"
-                  className="btn bg-white/70 border border-green-700 text-green-800 hover:bg-green-800 hover:text-white rounded-full px-8 h-12 min-h-12 transition-all duration-300"
+                  className="btn bg-white/70 border border-green-700 text-green-800 hover:bg-green-800 hover:text-white rounded-full px-6 sm:px-8 h-12 min-h-12 transition-all duration-300 max-w-full"
                 >
                   Learn About Us
                 </Link>

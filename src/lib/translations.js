@@ -398,13 +398,11 @@ const enToBn = {
   "Explore Upcoming Events": "আসন্ন ইভেন্ট দেখুন",
   "Unable to get authentication token": "প্রমাণীকরণ টোকেন পাওয়া যায়নি",
   "Please login first.": "অনুগ্রহ করে প্রথমে লগইন করুন।",
-
-  // Known demo event titles (also handled by the event content layer)
-  "Corrupti laudantium": "দুর্নীতির প্রশংসা",
-  "Qui ullamco optio t": "কারণ ও সুযোগ",
-  "Cupiditate totam exp": "লোভ ও সমর্পণ",
-  "Eum dicta expedita d": "তার কথা ও কর্ম",
-  "Mollitia sint eum ex": "কোমলতা ও সহানুভূতি",
+  "English fields must contain English text. Use the Bengali fields for Bengali content.":
+    "ইংরেজি ক্ষেত্রে ইংরেজি লেখা দিন। বাংলা লেখার জন্য বাংলা ক্ষেত্র ব্যবহার করুন।",
+  "Bengali fields must contain Bengali text. Use the English fields for English content.":
+    "বাংলা ক্ষেত্রে বাংলা লেখা দিন। ইংরেজি লেখার জন্য ইংরেজি ক্ষেত্র ব্যবহার করুন।",
+  "Please enter a valid image URL.": "একটি বৈধ ছবির URL দিন।",
 };
 
 const patternRules = [
